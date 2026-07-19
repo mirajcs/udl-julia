@@ -21,13 +21,7 @@ Pkg.instantiate()
 
 ## Running
 
-Run a script directly:
-
-```bash
-julia --project=. 2_1_Supervise_Learning.jl
-```
-
-Or launch the notebooks with IJulia:
+Launch the notebooks with IJulia:
 
 ```julia
 using IJulia
