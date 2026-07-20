@@ -7,8 +7,6 @@ Julia ports of the examples and exercises from
 The original notebooks are written in Python; this repo reimplements them in
 Julia as a way to work through the book.
 
-This is an **unofficial** port. It is not affiliated with or endorsed by the
-author.
 
 
 ## Attribution and licensing
