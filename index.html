@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Understanding Deep Learning — Julia</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --border: #e2e2e2;
+    --card: #fafafa;
+    --card-hover: #f0f4ff;
+    --accent: #2f5fd0;
+    --tag: #eef1f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14151a;
+      --fg: #e6e6e6;
+      --muted: #9aa0aa;
+      --border: #2a2c33;
+      --card: #1c1e25;
+      --card-hover: #232838;
+      --accent: #7aa2f7;
+      --tag: #262932;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+  header h1 { font-size: 2rem; margin: 0 0 .4rem; letter-spacing: -0.02em; }
+  header p { color: var(--muted); margin: 0 0 .3rem; }
+  header a { color: var(--accent); text-decoration: none; }
+  header a:hover { text-decoration: underline; }
+  .note {
+    margin: 1.5rem 0 2.5rem;
+    padding: .8rem 1rem;
+    border-left: 3px solid var(--accent);
+    background: var(--card);
+    border-radius: 0 6px 6px 0;
+    color: var(--muted);
+    font-size: .9rem;
+  }
+  h2.section {
+    font-size: .85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 2.5rem 0 .75rem;
+    font-weight: 600;
+  }
+  .grid { display: grid; gap: .6rem; }
+  .card {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    text-decoration: none;
+    color: inherit;
+    transition: background .12s ease, border-color .12s ease, transform .12s ease;
+  }
+  .card:hover { background: var(--card-hover); border-color: var(--accent); transform: translateX(2px); }
+  .card .t { font-weight: 600; }
+  .card .num { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: .5rem; }
+  .card .arrow { color: var(--accent); flex: none; }
+  .card.disabled { pointer-events: none; opacity: .55; }
+  .card.disabled .arrow { color: var(--muted); }
+  .tag {
+    font-size: .7rem;
+    padding: .1rem .45rem;
+    border-radius: 4px;
+    background: var(--tag);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .82rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Understanding Deep Learning — Julia</h1>
+    <p>Interactive <a href="https://plutojl.org/">Pluto</a> notebooks porting the
+       exercises and examples from <em>Understanding Deep Learning</em> by Simon J. D. Prince.</p>
+    <p><a href="https://github.com/mirajcs/udl-julia">Source on GitHub</a> ·
+       <a href="https://udlbook.github.io/udlbook/">The book</a></p>
+  </header>
+
+  <div class="note">
+    Each link opens a static, fully interactive notebook hosted on
+    <a href="https://pluto.land/">pluto.land</a> — no install required.
+    To run them locally, clone the repo and open the <code>.jl</code> files in Pluto.
+  </div>
+
+  <!--
+    TO PUBLISH A NOTEBOOK:
+    1. Open the .jl notebook in Pluto.
+    2. Click "Share" → "pluto.land" to get a permanent URL.
+    3. Paste that URL into the matching href="" below and remove the
+       class="card disabled" (change to class="card"), swapping the
+       "coming soon" tag for the arrow.
+  -->
+
+  <h2 class="section">Chapter 2 — Supervised learning</h2>
+  <div class="grid">
+    <a class="card" href="https://pluto.land/n/isxqbj8d">
+      <span><span class="num">2.1</span><span class="t">Supervised Learning</span></span>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+
+  <h2 class="section">Chapter 3 — Shallow neural networks</h2>
+  <div class="grid">
+    <a class="card disabled" href="#">
+      <span><span class="num">3.1</span><span class="t">Shallow Networks I</span></span>
+      <span class="tag">coming soon</span>
+    </a>
+    <a class="card disabled" href="#">
+      <span><span class="num">3.2</span><span class="t">Shallow Networks II</span></span>
+      <span class="tag">coming soon</span>
+    </a>
+    <a class="card disabled" href="#">
+      <span><span class="num">3.3</span><span class="t">Shallow Network Regions</span></span>
+      <span class="tag">coming soon</span>
+    </a>
+    <a class="card disabled" href="#">
+      <span><span class="num">3.4</span><span class="t">Activation Functions</span></span>
+      <span class="tag">coming soon</span>
+    </a>
+  </div>
+
+  <h2 class="section">Chapter 4 — Deep neural networks</h2>
+  <div class="grid">
+    <a class="card disabled" href="#">
+      <span><span class="num">4.1</span><span class="t">Composing Networks</span></span>
+      <span class="tag">coming soon</span>
+    </a>
+  </div>
+
+  <footer>
+    <p>Julia ports © 2026 Miraj Samarakkody.
+       Port code is released under the
+       <a href="https://github.com/mirajcs/udl-julia/blob/main/LICENSE">MIT License</a>.</p>
+    <p>Original notebooks © Simon J. D. Prince, licensed
+       <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>.</p>
+  </footer>
+</div>
+</body>
+</html>

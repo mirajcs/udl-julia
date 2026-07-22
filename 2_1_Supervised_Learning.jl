@@ -225,8 +225,6 @@ A = [ones(length(x₁)) x₁]; nothing #design matrix
 # ╔═╡ f72c2f10-ddfc-4af4-9740-77e3f9c80a0f
 ϕ₀₀¹, ϕ₀₁¹ = A \ y₁
 
-
-
 # ╔═╡ 73872032-21a8-4927-bc97-dad27de3e64e
 B = [ones(length(y₁)) y₁] #design matrix
 

@@ -4,8 +4,9 @@ Julia ports of the examples and exercises from
 **_Understanding Deep Learning_** by Simon J. D. Prince
 ([udlbook.github.io/udlbook](https://udlbook.github.io/udlbook/)).
 
-The original notebooks are written in Python; this repo reimplements them in
-Julia as a way to work through the book.
+The original notebooks are written in Python (Jupyter); this repo reimplements
+them as Julia [Pluto](https://plutojl.org/) notebooks as a way to work through
+the book.
 
 
 
@@ -35,15 +36,15 @@ Pkg.instantiate()
 
 ## Running
 
-Launch the notebooks with IJulia:
+The notebooks are [Pluto](https://plutojl.org/) notebooks (`.jl` files).
+Launch Pluto and open one from the file picker:
 
 ```julia
-using IJulia
-notebook(dir=".")
+using Pluto
+Pluto.run()
 ```
 
 ## Dependencies
 
 - `Plots` — figures
-- `IJulia` — Jupyter notebooks
-- `Revise` — interactive development
+- `Pluto` — reactive notebooks
