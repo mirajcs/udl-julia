@@ -40,7 +40,7 @@ function Shallow_1_1_3(x, ActivationFn, ϕ₀, ϕ₁, ϕ₂, ϕ₃, θ₁₀, θ
     WAct₃ = ϕ₃ .* Act₃ 
 
     y = ϕ₀ .+ WAct₁ .+ WAct₂ .+ WAct₃ 
-    return y, Pre₁, Pre₂, Pre₃, Act₁, Act₂, Act₃, WAct₁, WAct₂, WAct₃
+    return y
 end
 
 # ╔═╡ c8c0997d-0f87-468f-8e16-708b632b5b8b
@@ -57,13 +57,13 @@ function PlotNeuralTwoComposition(xIn, Net1Out, Net2Out, Net12Out = nothing)
               xlims=(-1,1), ylims=(-1,1), aspect_ratio=1.0)
 
     # No composition given → just return the two-panel row.
-    Net12Out === nothing && return plot(p₁, p₂, layout=(1,2), size=(850, 450))
+    Net12Out === nothing && return plot(p₁, p₂, layout=(1,2), size=(900, 450))
 
     # Composition below, same size (the `_` leaves the second slot blank).
     p₃ = plot(xIn, Net12Out, color=:green, linestyle=:solid, legend=false,
               xlabel="x input", ylabel="Output",
               xlims=(-1,1), ylims=(-1,1), aspect_ratio=1.0)
-    return plot(p₁, p₂, p₃, layout=@layout([a b; c _]), size=(850, 850))
+    return plot(p₁, p₂, p₃, layout=@layout([a b; c _]), size=(900, 900))
 end
 
 
@@ -81,15 +81,15 @@ begin
 	# Now lets define some parameters and run the second neural network 
 	n₂_θ₁₀ = -0.6; n₂_θ₁₁ = -1.0
 	n₂_θ₂₀ = 0.2; n₂_θ₂₁ = 1.0 
-	n₂_θ₃₀ = -0.5; n₂_θ₃₁ = -1.0
+	n₂_θ₃₀ = -0.5; n₂_θ₃₁ = 1.0
 	n₂_ϕ₀ = 0.5; n₂_ϕ₁ = -1.0; n₂_ϕ₂ = -1.5; n₂_ϕ₃ = 2.0 
 
 	# display the two outputs 
 	x = -1.0:0.001:1-0.001
 
 	# We run the first and second neural network for each of these input values 
-	Net1Out, = Shallow_1_1_3(x, ReLU, n₁_ϕ₀, n₁_ϕ₁, n₁_ϕ₂, n₁_ϕ₃, n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁) 
-	Net2Out, = Shallow_1_1_3(x, ReLU, n₂_ϕ₀, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 
+	Net1Out = Shallow_1_1_3(x, ReLU, n₁_ϕ₀, n₁_ϕ₁, n₁_ϕ₂, n₁_ϕ₃, n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁) 
+	Net2Out = Shallow_1_1_3(x, ReLU, n₂_ϕ₀, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 
 
 	# plot both graphs 
 	PlotNeuralTwoComposition(x, Net1Out, Net2Out)
@@ -105,7 +105,7 @@ begin
 	# Now let's see if your predictions were right 
 
     # Feed the output of first network into second network 
-    Net12Out, = Shallow_1_1_3(Net1Out, ReLU, n₂_ϕ₀, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 
+    Net12Out = Shallow_1_1_3(Net1Out, ReLU, n₂_ϕ₀, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 
 
     # plot all the graphs 
     PlotNeuralTwoComposition(x, Net1Out, Net2Out, Net12Out)
@@ -115,13 +115,11 @@ end
 md"Now we'll change things a up a bit.  What happens if we change the second network? (note the *-1 change)"
 
 # ╔═╡ 1161040d-d94c-4c80-8bc7-e3959ba723f7
-Net1Out¹, = Shallow_1_1_3(x, ReLU, n₁_ϕ₀, n₁_ϕ₁, n₁_ϕ₂, n₁_ϕ₃, n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁)
-
-# ╔═╡ 1294a8c6-fc85-4808-ae82-a9526c902e1a
-Net2Out¹, = Shallow_1_1_3(x, ReLU, n₂_ϕ₀, n₂_ϕ₁-1, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
-
-# ╔═╡ 3792c01a-47e3-44c2-a316-a365ec998fb3
-PlotNeuralTwoComposition(x, Net1Out¹, Net2Out¹)
+begin
+	Net1Out¹ = Shallow_1_1_3(x, ReLU, n₁_ϕ₀, n₁_ϕ₁, n₁_ϕ₂, n₁_ϕ₃, n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁)
+	Net2Out¹ = Shallow_1_1_3(x, ReLU, n₂_ϕ₀, n₂_ϕ₁*-1, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
+	PlotNeuralTwoComposition(x, Net1Out¹, Net2Out¹)
+end 
 
 # ╔═╡ de1af892-f9bd-4d7f-a57e-0ff96031a3bd
 md"## TODO
@@ -131,18 +129,20 @@ Take a piece of paper and draw what you think will happen when we feed the outpu
 md"When you have a prediction, run this code to see if you were right"
 
 # ╔═╡ b60a369f-e603-4e98-868a-ace254853f99
-begin 
-	Net12Out¹, = Shallow_1_1_3(Net1Out, ReLU, n₂_ϕ₁, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 	
-	PlotNeuralTwoComposition(x, Net1Out¹, Net2Out¹, Net12Out¹)
+begin
+    Net12Out¹ = Shallow_1_1_3(Net1Out¹, ReLU, n₂_ϕ₀, n₂_ϕ₁*-1, n₂_ϕ₂, n₂_ϕ₃,
+                               n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
+    PlotNeuralTwoComposition(x, Net1Out¹, Net2Out¹, Net12Out¹)
 end
+
 
 # ╔═╡ 7dc40d3a-3437-4345-bed8-5817a481520b
 md"Let's change things again.  What happens if we change the first network? (note the changes)"
 
 # ╔═╡ cab9fc8d-d34f-4e26-a962-471743efef17
 begin
-	Net1Out², = Shallow_1_1_3(x, ReLU, n₁_ϕ₀, n₁_ϕ₁, n₁_ϕ₂, n₁_ϕ₃, n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁)
-	Net2Out², = Shallow_1_1_3(x, ReLU, n₂_ϕ₀, n₂_ϕ₁*0.5, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
+	Net1Out² = Shallow_1_1_3(x, ReLU, n₁_ϕ₀, n₁_ϕ₁*0.5, n₁_ϕ₂, n₁_ϕ₃, n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁)
+	Net2Out² = Shallow_1_1_3(x, ReLU, n₂_ϕ₀, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
 	PlotNeuralTwoComposition(x, Net1Out², Net2Out²)
 end
 
@@ -152,7 +152,7 @@ Take a piece of paper and draw what you think will happen when we feed the outpu
 
 # ╔═╡ f2d72514-a129-4236-bbc3-2efb4dc4c63e
 begin 
-	Net12Out², = Shallow_1_1_3(Net1Out², ReLU, n₂_ϕ₁, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 	
+	Net12Out² = Shallow_1_1_3(Net1Out², ReLU, n₂_ϕ₀, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 	
 	PlotNeuralTwoComposition(x, Net1Out², Net2Out², Net12Out²)
 end
 
@@ -167,15 +167,29 @@ Take a piece of paper and draw what you think will happen when we feed the outpu
 # ╔═╡ 8731cf83-e042-4420-bbef-ffacd1dd93a1
 PlotNeuralTwoComposition(x, Net1Out¹, Net1Out¹)
 
-# ╔═╡ f1673d55-d582-4c45-8de6-53c8ff92189a
+# ╔═╡ 8edf15c5-c38c-4d50-9139-e064cd28ba60
 begin
-	Net12Out³ = Shallow_1_1_3(Net1Out¹, ReLU, n₂_ϕ₁, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
-	PlotNeuralTwoComposition(x, Net1Out¹, Net1Out¹, Net12Out³)
+    Net12Out³ = Shallow_1_1_3(Net1Out¹, ReLU, n₁_ϕ₀, n₁_ϕ₁, n₁_ϕ₂, n₁_ϕ₃,
+                              n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁)
+    PlotNeuralTwoComposition(x, Net1Out¹, Net1Out¹, Net12Out³)
 end
+
 
 # ╔═╡ 39bbb538-2b3f-4ce9-91a6-061cac7da2a2
 md"## TODO
 Contemplate what you think will happen when we feed the output of the original first network into a second copy of the original first network, and then the output of that into the original second network(so now we have a three layer network). How many total linear regions will we have in the output? "
+
+# ╔═╡ acf75602-54ff-491d-a36e-2ef5aa8e32e2
+begin
+	Net123Out = Shallow_1_1_3(Net12Out³, ReLU, n₂_ϕ₀, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
+	PlotNeuralTwoComposition(x, Net12Out³, Net2Out², Net123Out)
+end
+
+# ╔═╡ 31b58f49-2631-4f3d-8a9e-1502a10f4737
+md"## TODO 
+How many lineat regions would there be if we ran $N$ copies of teh first network, feeding the result of the first into the second, the second into the third and so on, and then passed the result into the original second network (blur curve above)
+
+Take away conclusion: with very few parameters, we can make a lot of linear regression, but they depend on one another in complex ways that quickly become too dificult to understand intuitively. "
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1321,8 +1335,6 @@ version = "1.13.0+0"
 # ╠═1f29f8bd-7521-4fad-bba7-35822a34f4a4
 # ╟─90537469-dd12-4ae4-8fc3-99b5bc70790d
 # ╠═1161040d-d94c-4c80-8bc7-e3959ba723f7
-# ╠═1294a8c6-fc85-4808-ae82-a9526c902e1a
-# ╠═3792c01a-47e3-44c2-a316-a365ec998fb3
 # ╟─de1af892-f9bd-4d7f-a57e-0ff96031a3bd
 # ╟─81f01896-5b73-4f59-b954-b0947d91767c
 # ╠═b60a369f-e603-4e98-868a-ace254853f99
@@ -1333,7 +1345,9 @@ version = "1.13.0+0"
 # ╟─4e4236ff-e36a-47f5-b8f6-9a69e8a3c137
 # ╟─7eb57437-9d39-4ade-b72b-ed7e07b736b4
 # ╠═8731cf83-e042-4420-bbef-ffacd1dd93a1
-# ╠═f1673d55-d582-4c45-8de6-53c8ff92189a
+# ╠═8edf15c5-c38c-4d50-9139-e064cd28ba60
 # ╟─39bbb538-2b3f-4ce9-91a6-061cac7da2a2
+# ╠═acf75602-54ff-491d-a36e-2ef5aa8e32e2
+# ╟─31b58f49-2631-4f3d-8a9e-1502a10f4737
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
