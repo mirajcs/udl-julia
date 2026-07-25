@@ -61,7 +61,7 @@ function PlotNeuralTwoComposition(xIn, Net1Out, Net2Out, Net12Out = nothing)
 
     # Composition below, same size (the `_` leaves the second slot blank).
     p₃ = plot(xIn, Net12Out, color=:green, linestyle=:solid, legend=false,
-              xlabel="Net 1 input", ylabel="Net 2 Output",
+              xlabel="x input", ylabel="Output",
               xlims=(-1,1), ylims=(-1,1), aspect_ratio=1.0)
     return plot(p₁, p₂, p₃, layout=@layout([a b; c _]), size=(850, 850))
 end
@@ -110,6 +110,72 @@ begin
     # plot all the graphs 
     PlotNeuralTwoComposition(x, Net1Out, Net2Out, Net12Out)
 end
+
+# ╔═╡ 90537469-dd12-4ae4-8fc3-99b5bc70790d
+md"Now we'll change things a up a bit.  What happens if we change the second network? (note the *-1 change)"
+
+# ╔═╡ 1161040d-d94c-4c80-8bc7-e3959ba723f7
+Net1Out¹, = Shallow_1_1_3(x, ReLU, n₁_ϕ₀, n₁_ϕ₁, n₁_ϕ₂, n₁_ϕ₃, n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁)
+
+# ╔═╡ 1294a8c6-fc85-4808-ae82-a9526c902e1a
+Net2Out¹, = Shallow_1_1_3(x, ReLU, n₂_ϕ₀, n₂_ϕ₁-1, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
+
+# ╔═╡ 3792c01a-47e3-44c2-a316-a365ec998fb3
+PlotNeuralTwoComposition(x, Net1Out¹, Net2Out¹)
+
+# ╔═╡ de1af892-f9bd-4d7f-a57e-0ff96031a3bd
+md"## TODO
+Take a piece of paper and draw what you think will happen when we feed the output of the first network into the modified second network.  Draw the relationship between the input of the first network and the output of the second one."
+
+# ╔═╡ 81f01896-5b73-4f59-b954-b0947d91767c
+md"When you have a prediction, run this code to see if you were right"
+
+# ╔═╡ b60a369f-e603-4e98-868a-ace254853f99
+begin 
+	Net12Out¹, = Shallow_1_1_3(Net1Out, ReLU, n₂_ϕ₁, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 	
+	PlotNeuralTwoComposition(x, Net1Out¹, Net2Out¹, Net12Out¹)
+end
+
+# ╔═╡ 7dc40d3a-3437-4345-bed8-5817a481520b
+md"Let's change things again.  What happens if we change the first network? (note the changes)"
+
+# ╔═╡ cab9fc8d-d34f-4e26-a962-471743efef17
+begin
+	Net1Out², = Shallow_1_1_3(x, ReLU, n₁_ϕ₀, n₁_ϕ₁, n₁_ϕ₂, n₁_ϕ₃, n₁_θ₁₀, n₁_θ₁₁, n₁_θ₂₀, n₁_θ₂₁, n₁_θ₃₀, n₁_θ₃₁)
+	Net2Out², = Shallow_1_1_3(x, ReLU, n₂_ϕ₀, n₂_ϕ₁*0.5, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
+	PlotNeuralTwoComposition(x, Net1Out², Net2Out²)
+end
+
+# ╔═╡ fcf61b41-b600-452b-a614-55c203661028
+md"## TODO
+Take a piece of paper and draw what you think will happen when we feed the output of the first network into the modified second network.  Draw the relationship between the input of the first network and the output of the second one."
+
+# ╔═╡ f2d72514-a129-4236-bbc3-2efb4dc4c63e
+begin 
+	Net12Out², = Shallow_1_1_3(Net1Out², ReLU, n₂_ϕ₁, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁) 	
+	PlotNeuralTwoComposition(x, Net1Out², Net2Out², Net12Out²)
+end
+
+# ╔═╡ 4e4236ff-e36a-47f5-b8f6-9a69e8a3c137
+md"Let's change things again.  What happens if the first network and second networks are the same?"
+
+# ╔═╡ 7eb57437-9d39-4ade-b72b-ed7e07b736b4
+md"
+## TODO
+Take a piece of paper and draw what you think will happen when we feed the output of the first network into the a copy of itself.  Draw the relationship between the input of the first network and the output of the second one."
+
+# ╔═╡ 8731cf83-e042-4420-bbef-ffacd1dd93a1
+PlotNeuralTwoComposition(x, Net1Out¹, Net1Out¹)
+
+# ╔═╡ f1673d55-d582-4c45-8de6-53c8ff92189a
+begin
+	Net12Out³ = Shallow_1_1_3(Net1Out¹, ReLU, n₂_ϕ₁, n₂_ϕ₁, n₂_ϕ₂, n₂_ϕ₃, n₂_θ₁₀, n₂_θ₁₁, n₂_θ₂₀, n₂_θ₂₁, n₂_θ₃₀, n₂_θ₃₁)
+	PlotNeuralTwoComposition(x, Net1Out¹, Net1Out¹, Net12Out³)
+end
+
+# ╔═╡ 39bbb538-2b3f-4ce9-91a6-061cac7da2a2
+md"## TODO
+Contemplate what you think will happen when we feed the output of the original first network into a second copy of the original first network, and then the output of that into the original second network(so now we have a three layer network). How many total linear regions will we have in the output? "
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1253,5 +1319,21 @@ version = "1.13.0+0"
 # ╠═1e10581f-b949-46e0-884b-d28c09f72e3c
 # ╟─1b0f0761-be60-480c-bc13-755f4e1d6e54
 # ╠═1f29f8bd-7521-4fad-bba7-35822a34f4a4
+# ╟─90537469-dd12-4ae4-8fc3-99b5bc70790d
+# ╠═1161040d-d94c-4c80-8bc7-e3959ba723f7
+# ╠═1294a8c6-fc85-4808-ae82-a9526c902e1a
+# ╠═3792c01a-47e3-44c2-a316-a365ec998fb3
+# ╟─de1af892-f9bd-4d7f-a57e-0ff96031a3bd
+# ╟─81f01896-5b73-4f59-b954-b0947d91767c
+# ╠═b60a369f-e603-4e98-868a-ace254853f99
+# ╟─7dc40d3a-3437-4345-bed8-5817a481520b
+# ╠═cab9fc8d-d34f-4e26-a962-471743efef17
+# ╟─fcf61b41-b600-452b-a614-55c203661028
+# ╠═f2d72514-a129-4236-bbc3-2efb4dc4c63e
+# ╟─4e4236ff-e36a-47f5-b8f6-9a69e8a3c137
+# ╟─7eb57437-9d39-4ade-b72b-ed7e07b736b4
+# ╠═8731cf83-e042-4420-bbef-ffacd1dd93a1
+# ╠═f1673d55-d582-4c45-8de6-53c8ff92189a
+# ╟─39bbb538-2b3f-4ce9-91a6-061cac7da2a2
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
