@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "Understanding Deep Learning — Julia"
+abstract: >-
+  Interactive Julia (Pluto) notebooks that work through the exercises
+  accompanying *Understanding Deep Learning* by Simon J. D. Prince. Following the
+  book's arc, they build modern deep learning from first principles — from
+  supervised learning and shallow and deep networks, through loss functions,
+  gradients, and training, on toward convolutional networks, transformers, and
+  generative models — implementing each idea from scratch as a hands-on Julia
+  companion to the text.
+type: software
+authors:
+  - family-names: Samarakkody
+    given-names: Miraj
+    email: miraj.samarakkody@gmail.com
+repository-code: "https://github.com/mirajcs/udl-julia"
+url: "https://mirajcs.github.io/udl-julia/"
+license: MIT
+version: 0.1.0
+date-released: "2026-07-25"
+keywords:
+  - deep-learning
+  - neural-networks
+  - julia
+  - pluto
+  - education
+references:
+  - type: book
+    title: "Understanding Deep Learning"
+    authors:
+      - family-names: Prince
+        given-names: "Simon J. D."
+    year: 2023
+    publisher:
+      name: "MIT Press"
+    isbn: "9780262048644"
+    url: "https://udlbook.github.io/udlbook/"
+    notes: >-
+      Original work these notebooks are derived from. Licensed CC BY-NC-ND 4.0.
