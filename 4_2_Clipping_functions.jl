@@ -33,12 +33,12 @@ end
 md"Define a deep neural network with one input, one output, two hidden layers and three hidden units. (equations 4.7-4.9)
 Properties are stored in arrays, so ϕ₀ = ϕ[0] and ψ₃₃ = ψ[3,3] etc." 
 
-# ╔═╡ 598246db-de3d-4252-a0a0-ec2c75dff20c
+# ╔═╡ be0b9b97-aeb4-4f6a-b0dc-fd81d41c3a25
 function Shallow_1_1_3_3(x, ActivationFn, ϕ, ψ, θ)
 	# Preactivation at layer 1 (terms in brackets in equation 4.7)
-	Layer1Pre1 = θ[1,0] + θ[1,1] * x 
-	Layer1Pre2 = θ[2,0] + θ[2,1] * x 
-	Layer1Pre3 = θ[3,0] + θ[3,1] * x
+	Layer1Pre1 = θ[1,0] .+ θ[1,1] .* x 
+	Layer1Pre2 = θ[2,0] .+ θ[2,1] .* x 
+	Layer1Pre3 = θ[3,0] .+ θ[3,1] .* x
 
 	# Activation functions (rest of equation 4.7)
 	h₁ = ActivationFn(Layer1Pre1)
@@ -46,26 +46,27 @@ function Shallow_1_1_3_3(x, ActivationFn, ϕ, ψ, θ)
 	h₃ = ActivationFn(Layer1Pre3)
 
 	# Preactivation at layer 2 (terms in brackets in equation 4.8)
-	Layer2Pre1 = ψ[1,0] + ψ[1,1] * h₁ + ψ[1,2] * h₂ + ψ[1,3] * h₃
-	Layer2Pre2 = ψ[2,0] + ψ[2,1] * h₁ + ψ[2,2] * h₂ + ψ[2,3] * h₃
-	Layer2Pre3 = ψ[3,0] + ψ[3,1] * h₁ + ψ[3,2] * h₂ + ψ[3,3] * h₃
+	Layer2Pre1 = ψ[1,0] .+ ψ[1,1] * h₁ .+ ψ[1,2] * h₂ .+ ψ[1,3] * h₃
+	Layer2Pre2 = ψ[2,0] .+ ψ[2,1] * h₁ .+ ψ[2,2] * h₂ .+ ψ[2,3] * h₃
+	Layer2Pre3 = ψ[3,0] .+ ψ[3,1] * h₁ .+ ψ[3,2] * h₂ .+ ψ[3,3] * h₃
 
-	# Activation function (Rest of equation 4.8)
+	# Activation function (rest of equation 4.8)
 	h₁¹ = ActivationFn(Layer2Pre1)
 	h₂¹ = ActivationFn(Layer2Pre2)
 	h₃¹ = ActivationFn(Layer2Pre3)
 
-	# Weighted output by ψ (there last tearms of equation 4.9)
+	# Weighted output by ϕ (last terms of equation 4.9)
 	ϕh₁¹ = ϕ[1] * h₁¹
 	ϕh₂¹ = ϕ[2] * h₂¹
 	ϕh₃¹ = ϕ[3] * h₃¹
 
-	# Combine weighted activation and y offset (summing terms of equation 4.9)
-	y = ϕ[0] + ϕ₁h₁¹ + ϕ₂h₂¹ + ϕ₃h₃¹ 
+	# Combine weighted activations and y offset (summing terms of equation 4.9)
+	y = ϕ[0] .+ ϕh₁¹ .+ ϕh₂¹ .+ ϕh₃¹
 
-	# Return everything we have calculated 
-	return y, Layer2Pre1, Layer2Pre2, Layer2Pre3, Layer2Pre3, h₁¹, h₂¹, h₃¹, ϕh₁¹, ϕh₂¹, ϕh₃¹
+	# Return everything we have calculated
+	return y, Layer2Pre1, Layer2Pre2, Layer2Pre3, h₁¹, h₂¹, h₃¹, ϕh₁¹, ϕh₂¹, ϕh₃¹
 end
+
 
 # ╔═╡ 694a96c7-d0a4-4475-b4e8-7f733606590d
 md"Plot two layer neural network as in figure 4.5"
@@ -85,11 +86,62 @@ function PlotNeuralTwoLayers(x, y, Layer2Pre1, Layer2Pre2, Layer2Pre3, h₁¹, h
 	p₉ = plot(x, ϕ₃h₃¹; color=:green, ylabel="ϕ₃h₃¹",xlabel= "Input, x", common...)
 
 	grid = plot(p₁, p₂, p₃, p₄, p₅, p₆, p₇, p₈, p₉; layout=(3,3), size=(850,850))
-	output = plot(x, y; xlabel="Input, x", ylabel="Output, x", xlim=(0,1), ylim=(-1,1), aspect_ratio=0.5, legend=false)
+	output = plot(x, y; xlabel="Input, x", ylabel=s"Output, x", xlim=(0,1), ylim=(-1,1), aspect_ratio=0.5, legend=false)
 	
 	return grid, output
 	
 end
+
+# ╔═╡ 78db7dc9-8dd7-432e-ac40-2f0ad103b3b3
+md"Define parameters (note first dimension of θ and ψ is padded to make indices match notation in book)"
+
+# ╔═╡ e93c3974-9b1c-41d3-8886-66ba7e1e6f5f
+begin
+	θ = let 
+		t = OffsetArray(zeros(3,2), 1:3, 0:1)
+		t[1,0] = 0.3; t[1,1] = -1.0
+		t[2,0] = -1.0; t[2,1] = 2.0
+		t[3,0] = -0.5; t[3,1] = 0.65
+		t 
+	end
+
+	ψ = let
+		p = OffsetArray(zeros(3,4), 1:3, 0:3)
+		p[1,0] = 0.3; p[1,1] = 2.0; p[1,2] = -1.0; p[1,3] = 7.0
+		p[2,0] = -0.2; p[2,1] = 2.0; p[2,2] = 1.2; p[2,3] = -8.0
+		p[3,0] = 0.3; p[3,1] = -2.3; p[3,2] = -0.8; p[3,3] = 2.0
+		p 
+	end
+
+	ϕ = let
+		f = OffsetArray(zeros(4), 0:3)
+		f[0] = 0.0; f[1] = 0.5; f[2] = -1.5; f[3] = 2.2
+		f 
+	end
+
+	x = 0:0.01:0.99
+
+end
+
+# ╔═╡ 01a48f3d-48e1-46ed-a3bc-199d2ac1f52d
+(y, Layer2Pre1, Layer2Pre2, Layer2Pre3, h₁¹, h₂¹, h₃¹, ϕ₁h₁¹, ϕ₂h₂¹, ϕ₃h₃¹) = Shallow_1_1_3_3(x, ReLU, ϕ, ψ, θ)
+
+# ╔═╡ 6235bee3-3332-495f-902b-4b4c2c45d901
+PlotNeuralTwoLayers(x,y, Layer2Pre1, Layer2Pre2, Layer2Pre3, h₁¹, h₂¹, h₃¹, ϕ₁h₁¹, ϕ₂h₂¹, ϕ₃h₃¹)[1]
+
+# ╔═╡ a5b496e7-bfb6-473c-8b84-7d505e824bd7
+PlotNeuralTwoLayers(x,y, Layer2Pre1, Layer2Pre2, Layer2Pre3, h₁¹, h₂¹, h₃¹, ϕ₁h₁¹, ϕ₂h₂¹, ϕ₃h₃¹)[2]
+
+# ╔═╡ e44beedf-1e2e-4aa3-bd02-a556bdaa6755
+md"# TODO
+To test your understanding of this, consider:
+
+1. What would happen if we increase ψ₁,₀?
+2. What would happen if we multiplied ψ₂,₀, ψ₂,₁, ψ₂,₂, ψ₂,₃ by -1?
+3. What would happen if set ϕ₃ to -1?
+
+You can rerun the code to see if you were correct? "
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1243,8 +1295,14 @@ version = "1.13.0+0"
 # ╟─eb0deb55-434f-4a10-8f7e-3a3750740d75
 # ╠═edd15e53-178d-4c8c-a199-f83a32363cd0
 # ╟─c2ea6934-ca8c-4f98-a5de-9aa5499bf461
-# ╠═598246db-de3d-4252-a0a0-ec2c75dff20c
+# ╠═be0b9b97-aeb4-4f6a-b0dc-fd81d41c3a25
 # ╟─694a96c7-d0a4-4475-b4e8-7f733606590d
 # ╠═f01b3533-2e88-44ed-8fbc-f3176f6ac7fc
+# ╟─78db7dc9-8dd7-432e-ac40-2f0ad103b3b3
+# ╠═e93c3974-9b1c-41d3-8886-66ba7e1e6f5f
+# ╠═01a48f3d-48e1-46ed-a3bc-199d2ac1f52d
+# ╠═6235bee3-3332-495f-902b-4b4c2c45d901
+# ╠═a5b496e7-bfb6-473c-8b84-7d505e824bd7
+# ╟─e44beedf-1e2e-4aa3-bd02-a556bdaa6755
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
