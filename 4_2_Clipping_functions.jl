@@ -10,6 +10,9 @@ using Plots
 # ╔═╡ 16e12725-bbd3-4bfb-867c-62bdbe4f8fa0
 using OffsetArrays
 
+# ╔═╡ ebb6137b-b21e-49c1-9261-3666c28c2af6
+using LaTeXStrings
+
 # ╔═╡ a31a7b38-8958-11f1-b935-6d4815952cac
 md"# Notebook 4.2 -- Clipping Functions
 
@@ -64,13 +67,39 @@ function Shallow_1_1_3_3(x, ActivationFn, ϕ, ψ, θ)
 	return y, Layer2Pre1, Layer2Pre2, Layer2Pre3, Layer2Pre3, h₁¹, h₂¹, h₃¹, ϕh₁¹, ϕh₂¹, ϕh₃¹
 end
 
+# ╔═╡ 694a96c7-d0a4-4475-b4e8-7f733606590d
+md"Plot two layer neural network as in figure 4.5"
+
+# ╔═╡ f01b3533-2e88-44ed-8fbc-f3176f6ac7fc
+function PlotNeuralTwoLayers(x, y, Layer2Pre1, Layer2Pre2, Layer2Pre3, h₁¹, h₂¹, h₃¹, ϕ₁h₁¹, ϕ₂h₂¹, ϕ₃h₃¹)
+	common = (xlim=(0,1), ylim=(-1,1), aspect_ratio=0.5, legend=false)
+
+	p₁ = plot(x, Layer2Pre1; color=:red, ylabel="ψ₁₀ + ψ₁₁h₁ + ψ₁₂h₂ + ψ₁₃h₃", common...)
+	p₂ = plot(x, Layer2Pre2; color=:blue, ylabel="ψ₂₀ + ψ₂₁h₁ + ψ₂₂h₂ + ψ₂₃h₃", common...)
+	p₃ = plot(x, Layer2Pre3; color=:green, ylabel="ψ₃₀ + ψ₃₁h₁ + ψ₃₂h₂ + ψ₃₃h₃", common...)
+	p₄ = plot(x, h₁¹; color=:red, ylabel="h₁¹", common...)
+	p₅ = plot(x, h₂¹; color=:blue, ylabel="h₂¹", common...)
+	p₆ = plot(x, h₃¹; color=:green, ylabel="h₃¹", common...)
+	p₇ = plot(x, ϕ₁h₁¹; color=:red, ylabel="ϕ₁h₁¹",xlabel= "Input, x", common...)
+	p₈ = plot(x, ϕ₂h₂¹; color=:blue, ylabel="ϕ₂h₂¹",xlabel= "Input, x", common...)
+	p₉ = plot(x, ϕ₃h₃¹; color=:green, ylabel="ϕ₃h₃¹",xlabel= "Input, x", common...)
+
+	grid = plot(p₁, p₂, p₃, p₄, p₅, p₆, p₇, p₈, p₉; layout=(3,3), size=(850,850))
+	output = plot(x, y; xlabel="Input, x", ylabel="Output, x", xlim=(0,1), ylim=(-1,1), aspect_ratio=0.5, legend=false)
+	
+	return grid, output
+	
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
+LaTeXStrings = "~1.4.0"
 OffsetArrays = "~1.17.0"
 Plots = "~1.41.6"
 """
@@ -81,7 +110,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.6"
 manifest_format = "2.0"
-project_hash = "4a2bf16b2f8db0dccb68f337420ff8b84b4c4192"
+project_hash = "6ff11bb7f7529f7a7cfd60dd5306d54937e16fc4"
 
 [[deps.AliasTables]]
 deps = ["PtrArrays", "Random"]
@@ -1209,10 +1238,13 @@ version = "1.13.0+0"
 # ╔═╡ Cell order:
 # ╟─a31a7b38-8958-11f1-b935-6d4815952cac
 # ╠═6a2d6551-7d6e-4ca4-9ea3-e5248a437214
+# ╠═16e12725-bbd3-4bfb-867c-62bdbe4f8fa0
+# ╠═ebb6137b-b21e-49c1-9261-3666c28c2af6
 # ╟─eb0deb55-434f-4a10-8f7e-3a3750740d75
 # ╠═edd15e53-178d-4c8c-a199-f83a32363cd0
-# ╠═16e12725-bbd3-4bfb-867c-62bdbe4f8fa0
 # ╟─c2ea6934-ca8c-4f98-a5de-9aa5499bf461
 # ╠═598246db-de3d-4252-a0a0-ec2c75dff20c
+# ╟─694a96c7-d0a4-4475-b4e8-7f733606590d
+# ╠═f01b3533-2e88-44ed-8fbc-f3176f6ac7fc
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
