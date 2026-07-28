@@ -42,7 +42,7 @@ using Pluto
 Pluto.run()
 ```
 
-Each notebook carries its own package environment, embedded in the `.jl` file, and installs what it needs on first run — you do not need to install `Plots` or anything else yourself. The first launch of a notebook takes a minute or two while packages download and precompile.
+Each notebook carries its own package environment, embedded in the `.jl` file, and installs what it needs on first run. You do not need to install `Plots` or anything else yourself. The first launch of a notebook takes a minute or two while packages download and precompile.
 
 ## Dependencies
 
