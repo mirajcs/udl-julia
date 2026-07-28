@@ -42,11 +42,13 @@ using Pluto
 Pluto.run()
 ```
 
-Each notebook carries its own package environment, embedded in the `.jl` file, and installs what it needs on first run. There is no project-wide environment to instantiate. The first launch of a notebook takes a minute or two while packages download and precompile.
+Each notebook carries its own package environment, embedded in the `.jl` file, and installs what it needs on first run — you do not need to install `Plots` or anything else yourself. The first launch of a notebook takes a minute or two while packages download and precompile.
 
 ## Dependencies
 
-Used by the notebooks:
+The `Project.toml` at the repo root holds only `Pluto`. It exists so CI can run the notebooks headless (`julia --project=. ci/check_notebooks.jl`). It is not where the notebook dependencies live, so don't remove it and don't add to it.
+
+The notebooks themselves use:
 
 - `Plots` — figures
 - `LaTeXStrings` — math labels in plots
