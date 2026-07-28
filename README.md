@@ -25,13 +25,11 @@ accompanying text remain the author's work under the terms above.
 
 ## Setup
 
-Requires [Julia](https://julialang.org/) (1.9+). Install the project
-dependencies:
+Requires [Julia](https://julialang.org/) (1.9+). Install Pluto:
 
 ```julia
 using Pkg
-Pkg.activate(".")
-Pkg.instantiate()
+Pkg.add("Pluto")
 ```
 
 ## Running
@@ -44,7 +42,13 @@ using Pluto
 Pluto.run()
 ```
 
+Each notebook carries its own package environment, embedded in the `.jl` file, and installs what it needs on first run. There is no project-wide environment to instantiate. The first launch of a notebook takes a minute or two while packages download and precompile.
+
 ## Dependencies
 
+Used by the notebooks:
+
 - `Plots` — figures
-- `Pluto` — reactive notebooks
+- `LaTeXStrings` — math labels in plots
+- `OffsetArrays` — 0-based indexing, to match Python's convention and keep the
+  notation aligned with the book and the author's original notebooks
