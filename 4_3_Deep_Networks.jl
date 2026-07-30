@@ -36,6 +36,36 @@ function Shallow_1_1_3(x, ActivationFn, ϕ₀, ϕ₁, ϕ₂, ϕ₃, θ₁₀, θ
     return y, Pre₁, Pre₂, Pre₃, Act₁, Act₂, Act₃
 end
 
+# ╔═╡ 9e974a40-7e61-4e92-85fe-fa7ca82baa9f
+md"Plot the shallow neural network. We'll assume imput is in range [-1,1] and output [-1,1]"
+
+# ╔═╡ 43e9a8d2-b557-40e9-af6d-05708920b831
+function PlotNeural(x,y)
+	plot(x, y, xlabel="Input", ylabel="Output", xlim=(-1,1), ylim=(-1,1), aspect_ratio=1.0, legend=false)
+end
+
+# ╔═╡ 7c02dcad-91b3-4466-81ae-541389e0d2b0
+md"Let's define a network. We'll just consider the inputs and outputs over the range [-1,1]."
+
+# ╔═╡ 9c370e2d-e53d-421c-a76e-7fb0354ea7e4
+begin
+	
+	# Now let's define some parameters and run the first neural network 
+	n₁θ₁₀ = 0.0; n₁θ₁₁ = -1.0 
+	n₁θ₂₀ = 0.0; n₁θ₂₁ = 1.0 
+	n₁θ₃₀ = -0.67; n₁θ₃₁ = 1.0 
+	n₁ϕ₀ = 1.0; n₁ϕ₁ = -2.0; n₁ϕ₂ = -3.0; n₁ϕ₃ = 9.3
+
+	# Define a range of input values 
+	n₁In = -1:0.01:0.99 
+
+	# Run the neural network for each of these input values 
+	n₁Out, _... = Shallow_1_1_3(n₁In, ReLU, n₁ϕ₀, n₁ϕ₁, n₁ϕ₂, n₁ϕ₃, n₁θ₁₀, n₁θ₁₁, n₁θ₂₀, n₁θ₂₁, n₁θ₃₀, n₁θ₃₁)
+
+	PlotNeural(n₁In, n₁Out)
+end 
+
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1170,5 +1200,9 @@ version = "1.13.0+0"
 # ╠═3ec95d22-75eb-465e-b287-451b6c2a0b03
 # ╠═37a271b9-9516-4589-bb57-878017bab20d
 # ╠═8621033d-4b8e-4460-b4e9-76ce8f39bad2
+# ╟─9e974a40-7e61-4e92-85fe-fa7ca82baa9f
+# ╠═43e9a8d2-b557-40e9-af6d-05708920b831
+# ╟─7c02dcad-91b3-4466-81ae-541389e0d2b0
+# ╠═9c370e2d-e53d-421c-a76e-7fb0354ea7e4
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
