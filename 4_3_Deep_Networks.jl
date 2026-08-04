@@ -66,6 +66,124 @@ begin
 end 
 
 
+# ╔═╡ 98f6bf1f-b8f4-4efa-a076-cb8d2fad3870
+md"Now we'll define the same neural network, but this time, we will use matrix form as in equation 4.15. When you get this right, it will draw the same plot as above."
+
+# ╔═╡ 61013bfb-8d1c-41a8-88ec-cd54b29e5b3d
+begin
+	# Build the β and Ω matrices directly from the parameters. 
+	β₀ = [n₁θ₁₀; n₁θ₂₀; n₁θ₃₀] # 3-element column
+	Ω₀ = [n₁θ₁₁; n₁θ₂₁; n₁θ₃₁] # 3-element column 
+	β₁ = [n₁ϕ₀] # length 1
+	Ω₁ = [n₁ϕ₁ n₁ϕ₂ n₁ϕ₃] # 1x3 row 
+
+	# make sure the imput data matricx has different inputs in its columns 
+	nData = length(n₁In)
+	nDimIn = 1
+	n₁InMat = reshape(collect(n₁In), nDimIn, nData)
+
+	# Run the network for all inputs at once so we can draw the graph 
+	h₁ = ReLU(β₀ .+ Ω₀ * n₁InMat)
+	n₁OutMat = β₁ .+ Ω₁ * h₁
+
+	# Draw the network and check it looks the same as the non-matrix case
+	PlotNeural(vec(n₁InMat), vec(n₁OutMat))
+end
+
+# ╔═╡ a523681b-5dfb-4229-ae31-2423144faf6d
+md"Now we'll feed the output of the first network into the second one."
+
+# ╔═╡ 42b03eac-a7d7-499e-bcf7-e50e1b5901a6
+begin
+	n₂θ₁₀ = -0.6; n₂θ₁₁ = -1.0 
+	n₂θ₂₀ = 0.2; n₂θ₂₁ = 1.0 
+	n₂θ₃₀ = -0.5; n₂θ₃₁ = 1.0 
+	n₂ϕ₀ = 0.5; n₂ϕ₁ = -1.0; n₂ϕ₂ = -1.5; n₂ϕ₃ = 2.0 
+
+	# Define a range of input values 
+	n₂In = -1: 0.01: 0.99 
+
+	# Run the second neural network on the OUTPUT of the first network 
+	n₂Out, _... = Shallow_1_1_3(n₁OutMat, ReLU, n₂ϕ₀, n₂ϕ₁, n₂ϕ₂, n₂ϕ₃, n₂θ₁₀, n₂θ₁₁, n₂θ₂₀, n₂θ₂₁, n₂θ₃₀, n₂θ₃₁) 
+
+	# and then plot it 
+	PlotNeural(vec(n₁In), vec(n₂Out))
+end
+
+# ╔═╡ 8a3ec1b2-360e-4d05-b8e2-e72d64538b75
+begin
+	# This encodes the composition of the two networks (equation 4.5)
+	β₀¹ = [n₁θ₁₀ ; n₁θ₂₀; n₁θ₃₀] # 3-element column 
+	Ω₀¹ = [n₁θ₁₁ ; n₁θ₂₁ ; n₁θ₃₁] # 3-element column 
+
+	β₁¹ = [n₂θ₁₀ + n₂θ₁₁ * n₁ϕ₀;
+		  n₂θ₂₀ + n₂θ₂₁ * n₁ϕ₀;
+		  n₂θ₃₀ + n₂θ₃₁ * n₁ϕ₀]
+
+	# 3x3; row i uses n₂θᵢ, column j uses n₁ϕⱼ
+	Ω₁¹ = [n₂θ₁₁ * n₁ϕ₁   n₂θ₁₁ * n₁ϕ₂   n₂θ₁₁ * n₁ϕ₃;
+		 n₂θ₂₁ * n₁ϕ₁   n₂θ₂₁ * n₁ϕ₂   n₂θ₂₁ * n₁ϕ₃;
+		 n₂θ₃₁ * n₁ϕ₁   n₂θ₃₁ * n₁ϕ₂   n₂θ₃₁ * n₁ϕ₃]
+	β₂¹ = [n₂ϕ₀] # length-1
+	Ω₂¹ = [n₂ϕ₁  n₂ϕ₂  n₂ϕ₃] # 1x3 row 
+
+	# make sure the input data matrix has different inputs in its columns 
+	nData¹ = length(n₁In)
+	nDimIn¹ = 1
+	n₁InMat¹ = reshape(collect(n₁In), nDimIn¹, nData)
+
+	# Run the network for ALL inputs at once so we can draw the graph 
+	h₁¹ = ReLU(β₀¹ .+ Ω₀¹ * n₁InMat¹)
+	h₂¹ = ReLU(β₁¹ .+ Ω₁¹ * h₁¹)
+
+	n₁OutComposed = β₂¹ .+ Ω₂¹ * h₂¹ 
+
+	#Draw the network and check it looks the same as the non-matrix version
+	PlotNeural(vec(n₁InMat), vec(n₁OutComposed))
+end
+
+# ╔═╡ ad30a743-b694-4a7c-bf41-772d7244c800
+md"Now let's make a deep network with 3 hidden layers. It will have  $D_i =4$  inputs,  $D_1=5$  neurons in the first layer, $D_2=2$  neurons in the second layer and  $D_3=4$  neurons in the third layer, and  $D_0=1$  output. Consult figure 4.6 and equations 4.15 for guidance."
+
+# ╔═╡ 1a678e00-e9ad-444f-aa7b-a5bfb38a7d2f
+begin
+	# Define sizes 
+	Dᵢ = 4; D₁ = 5; D₂ = 2; D₃ = 4; D₀ = 1
+
+	nData² = 4
+	x = randn(Dᵢ, nData²)
+
+	β₀² = randn(D₁, 1) # (5,1) bias into h₁
+	Ω₀² = randn(D₁, Dᵢ) # (5,4) output h₁
+
+	β₁² = randn(D₂, 1) # (2,1) bias into h₂
+	Ω₁² = randn(D₂, D₁) # (2,5) output h₂
+
+	β₂² = randn(D₃, 1) # (4,1) bias into h₃
+	Ω₂² = randn(D₃, D₂) # (4,2) output h₃
+
+	β₃² = randn(D₀, 1) # (1,1) bias into output 
+	Ω₃² = randn(D₀, D₃) # (1,4) output 
+
+	# If you set the parameters to the correct sizes, the following code run
+	h₁² = ReLU(β₀² .+ Ω₀² * x) 
+	h₂² = ReLU(β₁² .+ Ω₁² * h₁²)
+	h₃² = ReLU(β₂² .+ Ω₂² * h₂²)
+	y = β₃² .+ Ω₃² * h₃²
+
+	# shape check
+	@assert size(h₁²) == (D₁, nData²)
+	@assert size(h₂²) == (D₂, nData²)
+	@assert size(h₃²) == (D₃, nData²)
+	@assert size(y) == (D₀, nData²)
+
+	# Print the inputs and outputs 
+	println("Input data points:")
+	println(x)
+	println("Output data points:")
+	println(y)
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1204,5 +1322,12 @@ version = "1.13.0+0"
 # ╠═43e9a8d2-b557-40e9-af6d-05708920b831
 # ╟─7c02dcad-91b3-4466-81ae-541389e0d2b0
 # ╠═9c370e2d-e53d-421c-a76e-7fb0354ea7e4
+# ╟─98f6bf1f-b8f4-4efa-a076-cb8d2fad3870
+# ╠═61013bfb-8d1c-41a8-88ec-cd54b29e5b3d
+# ╟─a523681b-5dfb-4229-ae31-2423144faf6d
+# ╠═42b03eac-a7d7-499e-bcf7-e50e1b5901a6
+# ╠═8a3ec1b2-360e-4d05-b8e2-e72d64538b75
+# ╟─ad30a743-b694-4a7c-bf41-772d7244c800
+# ╠═1a678e00-e9ad-444f-aa7b-a5bfb38a7d2f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
