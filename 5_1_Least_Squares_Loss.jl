@@ -31,6 +31,50 @@ function Shallow_NN(x, β₀, Ω₀, β₁, Ω₁)
 	return y
 end
 
+# ╔═╡ e712e856-7f80-4386-bb7f-bfdc696816c1
+md"Get parameters for model."
+
+# ╔═╡ eee25464-f951-4c55-91e7-448c00876dcd
+function GetParameters()
+	β₀ = [0.3 ; -1.0; -0.5]
+	Ω₀ = [-1.0; 1.8; 0.65]
+	β₁ = [0.1]
+	Ω₁ = [-2.0 -1.0 7.0] #1x3 
+	return β₀, Ω₀, β₁, Ω₁
+end
+
+# ╔═╡ a5fd5f39-e51b-4032-b7b1-807c0d18467f
+md"Utility function for plotting data."
+
+# ╔═╡ 8d0a7289-f384-42d8-b0ab-632bfe860ef9
+function PlotUnivariateRegression(xModel, yModel, xData=nothing, yData=nothing, SigmaModel=nothing, title=nothing)
+
+	# Make sure model data are 1D arrays
+	xModel = vec(xModel)
+	yModel = vec(yModel)
+
+	# Base line plot; ribbon draws the ⨦2σ band i one shot
+	plt = plot(xModel, yModel, 
+			  label=false,
+			  xlabel="Input, \$x\$",
+			  ylabel="Output, \$y\$",
+			  xlims=(-,1),
+			  ylims=(-1,1),
+			  aspect_ratio=0.5,
+			  ribbon= SigmaModel === nothing ? nothing : 2 .* vec(SigmaModel),
+			  fillcolor = :lightgray,
+			  fillalpha = 1.0,
+			  title = title === nothing ? " " : title)
+
+	if xData !== nothing
+		scatter!(plt, vec(xData), vec(yData);
+				markercolor = :black, markershape = :circle, label = false)
+	end 
+
+	return plt 
+	
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1167,5 +1211,9 @@ version = "1.13.0+0"
 # ╠═7bb9ca8b-a8c7-41f6-8e21-3c21103b6f47
 # ╟─ecc8009b-e560-4d95-960b-357c53053103
 # ╠═777b9cca-f1da-4538-b8fa-12ecaf5a6068
+# ╟─e712e856-7f80-4386-bb7f-bfdc696816c1
+# ╠═eee25464-f951-4c55-91e7-448c00876dcd
+# ╟─a5fd5f39-e51b-4032-b7b1-807c0d18467f
+# ╠═8d0a7289-f384-42d8-b0ab-632bfe860ef9
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
