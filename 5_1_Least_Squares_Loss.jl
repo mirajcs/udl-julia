@@ -170,7 +170,7 @@ begin
 
 	σ² = 0.2 
 
-	likelyhood = (yTrain, μPred, σ²)
+	likelyhood = ComputeLikelihood(yTrain, μPred, σ²)
 
 	@printf("Correct answer = %9.9f, Your answer = %9.9f", 0.000010624, likelyhood)
 end
@@ -180,8 +180,17 @@ md"You can see that this gives a very small answers, even for this small 1D data
 
 # ╔═╡ a0cfb37c-852a-4548-8b33-4ba933158a6e
 function ComputeNegativeLogLikelihood(yTrain, μ, σ)
-	null = -sum.(log.(NormalDistribution.(yTrain, μ, σ)))
+	null = -sum(log.(NormalDistribution.(vec(yTrain), vec(μ), σ)))
 	return null 
+end
+
+# ╔═╡ 669ae019-c7a5-4dad-bb86-7ecde8196c3a
+md"Compute the sum of squares"
+
+# ╔═╡ e1f409fa-1e09-49e0-a942-0778a8774717
+function ComputeSumOfSquares(yTrain, yPred)
+	SumOfSquares = sum((yTrain - yPred)^2)
+	return SumOfSquares 
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1342,5 +1351,7 @@ version = "1.13.0+0"
 # ╠═78a1e0b6-91ae-4bfc-8159-dc5b2cfee610
 # ╟─324fa04c-763e-4435-b6b1-8e229d2a053d
 # ╠═a0cfb37c-852a-4548-8b33-4ba933158a6e
+# ╟─669ae019-c7a5-4dad-bb86-7ecde8196c3a
+# ╠═e1f409fa-1e09-49e0-a942-0778a8774717
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
