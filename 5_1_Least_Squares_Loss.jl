@@ -150,6 +150,18 @@ begin
 		legend = false)
 end
 
+# ╔═╡ 4ff1a918-c240-4a75-926c-a41d6a23a2b3
+md"Let's compute the likelihood using this function"
+
+# ╔═╡ e21136d7-c9a4-4438-89c2-82435dbd7696
+function ComputeLikelihood(yTrain, μ, σ)
+	Likelihood = prod(NormalDistribution(yTrain, μ, σ))
+	return Likelihood
+end
+
+# ╔═╡ 008e2a46-55b1-4791-b9a7-ebb9939e40b1
+md""
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1302,5 +1314,8 @@ version = "1.13.0+0"
 # ╠═c8067ceb-6d64-47ce-a250-a7852785e6a3
 # ╟─ec4da317-4b74-48ab-a37d-3840d3794e1d
 # ╠═38a10ab0-f60d-4e54-bc4b-b0e22b3ed9ee
+# ╟─4ff1a918-c240-4a75-926c-a41d6a23a2b3
+# ╠═e21136d7-c9a4-4438-89c2-82435dbd7696
+# ╠═008e2a46-55b1-4791-b9a7-ebb9939e40b1
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
