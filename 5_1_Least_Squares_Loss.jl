@@ -119,7 +119,7 @@ md"Return Probability under normal distribution"
 
 # ╔═╡ aef0a56e-e4ed-4b9b-b4ce-f51a0d29bb82
 function NormalDistribution(y, μ, σ)
-	prob = (1/ sqrt(2*π*σ^2))*(exp(-(y - μ)^2 /(2 * σ^2)))
+	prob = (1/ sqrt(2*π*σ^2))*(exp.(-(y - μ).^2 /(2 * σ^2)))
 	return prob 
 end
 
@@ -155,12 +155,34 @@ md"Let's compute the likelihood using this function"
 
 # ╔═╡ e21136d7-c9a4-4438-89c2-82435dbd7696
 function ComputeLikelihood(yTrain, μ, σ)
-	Likelihood = prod(NormalDistribution(yTrain, μ, σ))
+	Likelihood = prod(NormalDistribution(vec(yTrain), vec(μ), σ))
 	return Likelihood
 end
 
 # ╔═╡ 008e2a46-55b1-4791-b9a7-ebb9939e40b1
-md""
+md"Check the likelihood function"
+
+# ╔═╡ 78a1e0b6-91ae-4bfc-8159-dc5b2cfee610
+begin 
+	β₀², Ω₀², β₁², Ω₁² = GetParameters()
+
+	μPred = Shallow_NN(xTrain, β₀², Ω₀², β₁², Ω₁²)
+
+	σ² = 0.2 
+
+	likelyhood = (yTrain, μPred, σ²)
+
+	@printf("Correct answer = %9.9f, Your answer = %9.9f", 0.000010624, likelyhood)
+end
+
+# ╔═╡ 324fa04c-763e-4435-b6b1-8e229d2a053d
+md"You can see that this gives a very small answers, even for this small 1D dataset, and with the model fitting quite well. This is because it is the product of several probabilities, which are all quite small themselves. This will get out of hand pretty quickly with real datasets. The likelihood will get so small that we can't represent it with normal finite precision. This is why we use negative likelihood."
+
+# ╔═╡ a0cfb37c-852a-4548-8b33-4ba933158a6e
+function ComputeNegativeLogLikelihood(yTrain, μ, σ)
+	null = -sum.(log.(NormalDistribution.(yTrain, μ, σ)))
+	return null 
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1316,6 +1338,9 @@ version = "1.13.0+0"
 # ╠═38a10ab0-f60d-4e54-bc4b-b0e22b3ed9ee
 # ╟─4ff1a918-c240-4a75-926c-a41d6a23a2b3
 # ╠═e21136d7-c9a4-4438-89c2-82435dbd7696
-# ╠═008e2a46-55b1-4791-b9a7-ebb9939e40b1
+# ╟─008e2a46-55b1-4791-b9a7-ebb9939e40b1
+# ╠═78a1e0b6-91ae-4bfc-8159-dc5b2cfee610
+# ╟─324fa04c-763e-4435-b6b1-8e229d2a053d
+# ╠═a0cfb37c-852a-4548-8b33-4ba933158a6e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
