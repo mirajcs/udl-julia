@@ -7,6 +7,9 @@ using InteractiveUtils
 # ╔═╡ 9d578099-8759-4a6c-a97f-140d74b23342
 using Plots
 
+# ╔═╡ 4d4aabdf-96fa-4f5c-8d25-51ff4fe3c8b7
+using Printf
+
 # ╔═╡ 0d22205a-9357-11f1-8894-bd25defc30b1
 md"# Notebook 5.1 -- Least Squares Loss
 This notebook investigates the least squares loss and the equivalence of maximum likelihood and minimum negative log likelihood. 
@@ -26,8 +29,9 @@ md"Define the Shallow Neural Network"
 
 # ╔═╡ 777b9cca-f1da-4538-b8fa-12ecaf5a6068
 function Shallow_NN(x, β₀, Ω₀, β₁, Ω₁)
-	h₁ = ReLU(β₀ + Ω₀ * x)
-	y = β₁ + Ω₁ * h₁
+	xRow = reshape(collect(x), 1, :)
+	h₁ = ReLU(β₀ .+ Ω₀ * xRow)
+	y = β₁ .+ Ω₁ * h₁
 	return y
 end
 
@@ -47,7 +51,7 @@ end
 md"Utility function for plotting data."
 
 # ╔═╡ 8d0a7289-f384-42d8-b0ab-632bfe860ef9
-function PlotUnivariateRegression(xModel, yModel, xData=nothing, yData=nothing, SigmaModel=nothing, title=nothing)
+function PlotUnivariateRegression(xModel, yModel; xData=nothing, yData=nothing, SigmaModel=nothing, title=nothing)
 
 	# Make sure model data are 1D arrays
 	xModel = vec(xModel)
@@ -58,10 +62,10 @@ function PlotUnivariateRegression(xModel, yModel, xData=nothing, yData=nothing, 
 			  label=false,
 			  xlabel="Input, \$x\$",
 			  ylabel="Output, \$y\$",
-			  xlims=(-,1),
+			  xlims=(0,1),
 			  ylims=(-1,1),
 			  aspect_ratio=0.5,
-			  ribbon= SigmaModel === nothing ? nothing : 2 .* vec(SigmaModel),
+			  ribbon = SigmaModel === nothing ? nothing : 2 .* vec([SigmaModel;]),
 			  fillcolor = :lightgray,
 			  fillalpha = 1.0,
 			  title = title === nothing ? " " : title)
@@ -75,10 +79,82 @@ function PlotUnivariateRegression(xModel, yModel, xData=nothing, yData=nothing, 
 	
 end
 
+# ╔═╡ 34bd6174-8f21-493e-a724-9167bceff728
+md"## Univariate regression
+
+We'll investigate a simple univariate regression situation with a single input  𝑥  and a single output  𝑦  as pictured in figures 5.4 and 5.5b."
+
+# ╔═╡ 0be5a5b3-180b-462d-80da-f319984ff649
+md"Let's create some 1D training data."
+
+# ╔═╡ 1695801a-82e8-4d1d-9d1f-c26646668403
+begin
+xTrain = [0.09291784, 0.46809093, 0.93089486, 0.67612654, 0.73441752, 0.86847339, 
+		  0.49873225, 0.51083168, 0.18343972, 0.99380898, 0.27840809, 0.38028817,
+		  0.12055708, 0.56715537, 0.92005746, 0.77072270, 0.85278176, 0.05315950, 
+		  0.87168699, 0.58858043]
+
+yTrain = [-0.25934537, 0.18195445, 0.651270150, 0.13921448, 0.09366691, 0.30567674, 
+		  0.37229117 , 0.20716968, -0.08131792, 0.51187806, 0.16943738, 0.3994327, 
+		  0.019062570, 0.55820410, 0.452564960, -0.1183121, 0.02957665, -1.24354444,
+		  0.248038840, 0.26824970]
+
+# Get parameters for the model 
+β₀, Ω₀, β₁, Ω₁ = GetParameters()
+σ = 0.2 
+
+# Define a range of input values 
+xModel = 0:0.01:0.99
+
+# Run the model to get values to plot and plot it 
+yModel = Shallow_NN(xModel, β₀, Ω₀, β₁, Ω₁)
+PlotUnivariateRegression(xModel, yModel; xData=xTrain, yData=yTrain, SigmaModel=σ)
+end
+
+# ╔═╡ 1742e49c-0d69-49b5-ab86-d771bb3cee6c
+md"The blue line is the mean prediction of the model and the gray area represents plus/minus two standard deviations. This model fits okay, but could be improved. Let's compute the loss. We'll compute the the least squares error, the likelihood, the negative log likelihood."
+
+# ╔═╡ 004463ea-98b0-409d-a648-6a6ed30b24ca
+md"Return Probability under normal distribution"
+
+# ╔═╡ aef0a56e-e4ed-4b9b-b4ce-f51a0d29bb82
+function NormalDistribution(y, μ, σ)
+	prob = (1/ sqrt(2*π*σ^2))*(exp(-(y - μ)^2 /(2 * σ^2)))
+	return prob 
+end
+
+# ╔═╡ 3836b3eb-2329-4bf9-be96-2ed7966d049f
+md"Let's double check we get the right answer before proceding"
+
+# ╔═╡ c8067ceb-6d64-47ce-a250-a7852785e6a3
+@printf("Correct answer = %3.3f, Your answer = %3.3f", 0.119, NormalDistribution(1,-1,2.3))
+
+# ╔═╡ ec4da317-4b74-48ab-a37d-3840d3794e1d
+md" Let's plot the Gaussian distribution
+### TODO 
+1. Predict what will happen if we change to $\mu=1$ and leave $\sigma = 1$. Now change the code and see if you were correct. 
+2. Predict what will happen if we leave $\mu = 0$ and change $\sigma$ to 2.0.
+3. Predict what will happen if we leave $\mu = 0$ and change $\sigma$ to 0.5."
+
+# ╔═╡ 38a10ab0-f60d-4e54-bc4b-b0e22b3ed9ee
+begin
+	yGauss = -5:0.01:5
+	μ₁ = 0; σ₁ = 1.0
+	GaussProb = NormalDistribution.(yGauss, μ₁, σ₁)
+
+	plot(yGauss, GaussProb,
+		xlabel = "Input, \$y\$",
+		ylabel = "Probability, \$Pr(y)\$",
+		xlims = (-5,5),
+		ylims = (0, 1.0),
+		legend = false)
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
 Plots = "~1.41.6"
@@ -90,7 +166,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.6"
 manifest_format = "2.0"
-project_hash = "e181c0827eea669267c3ae2576311d8abe35ef38"
+project_hash = "501621a51a4beef1d86bfd8de084873773d92f22"
 
 [[deps.AliasTables]]
 deps = ["PtrArrays", "Random"]
@@ -1207,6 +1283,7 @@ version = "1.13.0+0"
 # ╔═╡ Cell order:
 # ╟─0d22205a-9357-11f1-8894-bd25defc30b1
 # ╠═9d578099-8759-4a6c-a97f-140d74b23342
+# ╠═4d4aabdf-96fa-4f5c-8d25-51ff4fe3c8b7
 # ╟─71c78c2c-36a9-4fc2-8abe-d9be9d6d5a2b
 # ╠═7bb9ca8b-a8c7-41f6-8e21-3c21103b6f47
 # ╟─ecc8009b-e560-4d95-960b-357c53053103
@@ -1215,5 +1292,15 @@ version = "1.13.0+0"
 # ╠═eee25464-f951-4c55-91e7-448c00876dcd
 # ╟─a5fd5f39-e51b-4032-b7b1-807c0d18467f
 # ╠═8d0a7289-f384-42d8-b0ab-632bfe860ef9
+# ╟─34bd6174-8f21-493e-a724-9167bceff728
+# ╟─0be5a5b3-180b-462d-80da-f319984ff649
+# ╠═1695801a-82e8-4d1d-9d1f-c26646668403
+# ╟─1742e49c-0d69-49b5-ab86-d771bb3cee6c
+# ╟─004463ea-98b0-409d-a648-6a6ed30b24ca
+# ╠═aef0a56e-e4ed-4b9b-b4ce-f51a0d29bb82
+# ╟─3836b3eb-2329-4bf9-be96-2ed7966d049f
+# ╠═c8067ceb-6d64-47ce-a250-a7852785e6a3
+# ╟─ec4da317-4b74-48ab-a37d-3840d3794e1d
+# ╠═38a10ab0-f60d-4e54-bc4b-b0e22b3ed9ee
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
