@@ -193,6 +193,9 @@ function ComputeSumOfSquares(yTrain, yPred)
 	return SumOfSquares 
 end
 
+# ╔═╡ 0a20c086-efb1-4ad2-a255-2ae254a9cf70
+
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1353,5 +1356,6 @@ version = "1.13.0+0"
 # ╠═a0cfb37c-852a-4548-8b33-4ba933158a6e
 # ╟─669ae019-c7a5-4dad-bb86-7ecde8196c3a
 # ╠═e1f409fa-1e09-49e0-a942-0778a8774717
+# ╠═0a20c086-efb1-4ad2-a255-2ae254a9cf70
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
