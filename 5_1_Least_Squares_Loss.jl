@@ -217,7 +217,7 @@ begin
 	β₁Vals = 0:0.01:1.0
 
 	# Initiate the parameters 
-	β₀⁴, Ω₀⁴, β₁⁴, Ω₁⁴ = GetParameters()
+	β₀⁴, Ω₀⁴, _ , Ω₁⁴ = GetParameters()
 	σ⁴ = 0.2
 
 	Likelyhood = [ComputeLikelihood(yTrain, Shallow_NN(xTrain, β₀⁴, Ω₀⁴, [β₁Val], Ω₁⁴), σ⁴) for β₁Val in β₁Vals]
@@ -233,6 +233,45 @@ begin
 	plot(ModelPlots...; layout=(length(ModelPlots),1), 
 		size=(500, 300*length(ModelPlots)))
 end 
+
+# ╔═╡ d1c9e838-2c81-4fe1-be98-77de80784119
+md"Now let's plot the likelihood, negative likelihood and least squares as a function of the values of the offset β₁."
+
+# ╔═╡ 1dd703f6-7418-4cb8-ad64-04c334f8aa11
+begin
+	p₁ = plot(β₁Vals, Likelyhood;
+			 color = :red,
+			 xlabel = "β₁",
+			 ylabel = "Likelihood",
+			 yguidefontcolor = :red,
+			 ytickfontcolor = :red,
+			 legend = false)
+
+	# Vertical dotted line at the maximum-likelihood β₁
+	vline!(p₁, [β₁Vals[argmax(Likelyhood)]];
+		  linestyle = :dash, color = :black)
+
+	# Twin y-axis for the negative log likelihood 
+	p₁Twin = twinx(p₁)
+	plot!(p₁Twin, β₁Vals, Nulls;
+		 color = :blue, 
+		 ylabel = "Negative log likelihood",
+		 yguidefontcolor = :blue,
+		 ytickfontcolor = :blue,
+		 legend = false)
+
+	# second plot 
+	p₂ = plot(β₁Vals, SumSquares;
+			 xlabel = "β₁",
+			 ylabel = "Sum of squares",
+			 legend = false)
+
+	# combine plots 
+	plot(p₁, p₂, layout = (2,1), size = (600, 700))
+end 
+
+# ╔═╡ 168296d5-c022-476e-a96e-630c8b22b5a2
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1398,5 +1437,8 @@ version = "1.13.0+0"
 # ╠═c179edb7-5f2a-460d-b908-a45b5970301d
 # ╟─603ec78e-d5cd-4a63-bb6a-4541f0ce70a7
 # ╠═705666df-96a3-4144-8a79-8eff9abba0b5
+# ╟─d1c9e838-2c81-4fe1-be98-77de80784119
+# ╠═1dd703f6-7418-4cb8-ad64-04c334f8aa11
+# ╠═168296d5-c022-476e-a96e-630c8b22b5a2
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
