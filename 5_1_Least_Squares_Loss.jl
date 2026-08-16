@@ -104,7 +104,7 @@ yTrain = [-0.25934537, 0.18195445, 0.651270150, 0.13921448, 0.09366691, 0.305676
 σ = 0.2 
 
 # Define a range of input values 
-xModel = 0:0.01:0.99
+xModel = 0:0.01:1.0
 
 # Run the model to get values to plot and plot it 
 yModel = Shallow_NN(xModel, β₀, Ω₀, β₁, Ω₁)
@@ -189,12 +189,50 @@ md"Compute the sum of squares"
 
 # ╔═╡ e1f409fa-1e09-49e0-a942-0778a8774717
 function ComputeSumOfSquares(yTrain, yPred)
-	SumOfSquares = sum((yTrain - yPred)^2)
+	SumOfSquares = sum((vec(yTrain) .- vec(yPred)).^2)
 	return SumOfSquares 
 end
 
-# ╔═╡ 0a20c086-efb1-4ad2-a255-2ae254a9cf70
+# ╔═╡ 81f3c945-9226-42bf-87e3-fb62b0fc6bb0
+md"Let's check"
 
+# ╔═╡ c179edb7-5f2a-460d-b908-a45b5970301d
+begin
+	β₀³, Ω₀³, β₁³, Ω₁³ = GetParameters()
+
+	yPred³ = Shallow_NN(xTrain, β₀³, Ω₀³, β₁³, Ω₁³)
+
+	SumOfSquares = ComputeSumOfSquares(yTrain, yPred³)
+
+	@printf("Correct answer = %9.9f, your answer = %9.9f", 2.020992572, SumOfSquares)	
+end
+
+# ╔═╡ 603ec78e-d5cd-4a63-bb6a-4541f0ce70a7
+md"Let's investigate finding the maximum likelihood, minimum negative log likelihood, least square solution. For simplicity, we'll assume that all the parameters are correct except one and look at how the likelihood, negative log likelihood, and sum of the squares change as we manipulate the last parameter. We'll start with overall $y$ off set, $\beta_1$."
+
+# ╔═╡ 705666df-96a3-4144-8a79-8eff9abba0b5
+begin
+	# Define a range of values for the parameters 
+
+	β₁Vals = 0:0.01:1.0
+
+	# Initiate the parameters 
+	β₀⁴, Ω₀⁴, β₁⁴, Ω₁⁴ = GetParameters()
+	σ⁴ = 0.2
+
+	Likelyhood = [ComputeLikelihood(yTrain, Shallow_NN(xTrain, β₀⁴, Ω₀⁴, [β₁Val], Ω₁⁴), σ⁴) for β₁Val in β₁Vals]
+	Nulls = [ComputeNegativeLogLikelihood(yTrain, Shallow_NN(xTrain, β₀⁴, Ω₀⁴, [β₁Val], Ω₁⁴), σ⁴) for β₁Val in β₁Vals]
+	SumSquares = [ComputeSumOfSquares(yTrain, Shallow_NN(xTrain, β₀⁴, Ω₀⁴, [β₁Val], Ω₁⁴)) for β₁Val in β₁Vals]
+
+	# Draw the model for every 20th parameter setting.
+	ModelPlots = [PlotUnivariateRegression(xModel, 
+										  Shallow_NN(xModel, β₀⁴, Ω₀⁴, [β₁Val], Ω₁⁴);
+										  xData=xTrain, yData=yTrain, SigmaModel=σ⁴,
+										  title=@sprintf("β₁=%3.3f", β₁Val)) 
+				 for β₁Val in β₁Vals[1:20:end]]
+	plot(ModelPlots...; layout=(length(ModelPlots),1), 
+		size=(500, 300*length(ModelPlots)))
+end 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1356,6 +1394,9 @@ version = "1.13.0+0"
 # ╠═a0cfb37c-852a-4548-8b33-4ba933158a6e
 # ╟─669ae019-c7a5-4dad-bb86-7ecde8196c3a
 # ╠═e1f409fa-1e09-49e0-a942-0778a8774717
-# ╠═0a20c086-efb1-4ad2-a255-2ae254a9cf70
+# ╟─81f3c945-9226-42bf-87e3-fb62b0fc6bb0
+# ╠═c179edb7-5f2a-460d-b908-a45b5970301d
+# ╟─603ec78e-d5cd-4a63-bb6a-4541f0ce70a7
+# ╠═705666df-96a3-4144-8a79-8eff9abba0b5
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
