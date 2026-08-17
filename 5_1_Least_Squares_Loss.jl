@@ -271,7 +271,28 @@ begin
 end 
 
 # ╔═╡ 168296d5-c022-476e-a96e-630c8b22b5a2
+md"You can see that the maximum of the likelihood is at the same position as the minimum negative log likelihood and the least square solutions."
 
+# ╔═╡ 3a3199ea-d2ff-465c-812b-4db8f6a19939
+begin
+	@printf("Maximum likelihood = %3.3f, at β₁ = %3.3f \n", Likelyhood[argmax(Likelyhood)], β₁Vals[argmax(Likelyhood)])
+	
+	@printf("Minimum negative log likelihood = %3.3f, at β₁ = %3.3f \n", Nulls[argmin(Nulls)], β₁Vals[argmin(Nulls)])
+
+	@printf("Least squares = %3.3f, at β₁ = %3.3f", SumSquares[argmin(SumOfSquares)], β₁Vals[argmin(SumSquares)])
+end
+
+# ╔═╡ aa99c702-c5c1-4686-b5cd-373767941975
+md"Plot the best model"
+
+# ╔═╡ e3fa7e3e-4dd1-49d2-97aa-00736af45391
+begin
+	β₁⁵ = β₁Vals[argmin(SumSquares)]
+
+	yModel⁵ = Shallow_NN(xModel, β₀⁴, Ω₀⁴, β₁⁵, Ω₁⁴)
+
+	PlotUnivariateRegression(vec(xModel), vec(yModel⁵); xData=xTrain, yData=yTrain, SigmaModel=σ⁴, title = @sprintf("β₁ = %3.3f", β₁⁵))
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1439,6 +1460,9 @@ version = "1.13.0+0"
 # ╠═705666df-96a3-4144-8a79-8eff9abba0b5
 # ╟─d1c9e838-2c81-4fe1-be98-77de80784119
 # ╠═1dd703f6-7418-4cb8-ad64-04c334f8aa11
-# ╠═168296d5-c022-476e-a96e-630c8b22b5a2
+# ╟─168296d5-c022-476e-a96e-630c8b22b5a2
+# ╠═3a3199ea-d2ff-465c-812b-4db8f6a19939
+# ╟─aa99c702-c5c1-4686-b5cd-373767941975
+# ╠═e3fa7e3e-4dd1-49d2-97aa-00736af45391
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
