@@ -294,6 +294,100 @@ begin
 	PlotUnivariateRegression(vec(xModel), vec(yModel⁵); xData=xTrain, yData=yTrain, SigmaModel=σ⁴, title = @sprintf("β₁ = %3.3f", β₁⁵))
 end
 
+# ╔═╡ 507b6e05-b495-47ef-9d93-9aef88bd9d34
+md"They all give the same answer, but you can see from the three plots above that the likelihood is very small unless the parameters are almost correct. So in practice, we would work with the negative log likelihood or the least square."
+
+# ╔═╡ acf6d53e-e93f-4ab3-b221-bfbd234b77c4
+md"Let's do the same thing with the standard deviation parameter of our network. This is not an output of the network (unless we choose to make that the case). But, still affects the likelihood."
+
+# ╔═╡ 21be3995-7d06-4226-b600-fee776fa5349
+begin
+	# Define a range of values for the parameters 
+	σVals = 0.1:0.005:0.5
+
+	# Initialize some parameters 
+	β₀⁶, Ω₀⁶, _, Ω₁⁶ = GetParameters()
+	β₁⁶ = [0.27]
+
+	Likelihood⁶ = [ComputeLikelihood(yTrain, Shallow_NN(xTrain, β₀⁶, Ω₀⁶, β₁⁶, Ω₁⁶), σVal) for σVal in σVals]
+	Nulls⁶ = [ComputeNegativeLogLikelihood(yTrain, Shallow_NN(xTrain, β₀⁶, Ω₀⁶, β₁⁶, Ω₁⁶), σVal) for σVal in σVals]
+	SumSquares⁶ = [ComputeSumOfSquares(yTrain, Shallow_NN(xTrain, β₀⁶, Ω₀⁶, β₁⁶, Ω₁⁶))]
+
+	# Plot models 
+	ModelPlots⁶ = [PlotUnivariateRegression(xModel, 
+										   Shallow_NN(xModel, β₀⁶, Ω₀⁶, β₁⁶, Ω₁⁶);
+										   xData = xTrain, yData=yTrain, 
+										   SigmaModel = σVal,
+										   title=@sprintf("σ = %3.3f", σVal)) 
+				  for σVal in σVals[1:20:end]]
+
+	plot(ModelPlots⁶...; layout=(length(ModelPlots⁶),1),
+		size=(500, 300*length(ModelPlots⁶)))
+end 
+
+# ╔═╡ 948d8def-8672-495c-a522-ee66eb096d9f
+begin
+	p₁⁶ = plot(σVals, Likelihood⁶;
+			  color = :red,
+			  xlabel = "σ",
+			  ylabel = "Likelihood",
+			  yguidefontcolor = :red,
+			  ytickfontcolor = :red,
+			  legend = false)
+
+	# Vertical dashed line at the maximum likelihood 
+	vline!(p₁⁶, [σVals[argmax(Likelihood⁶)]];
+		  linestyle = :dash,
+		  color = :black)
+
+	#Twin y-axis for the negative log likelihood 
+	p₁Twin⁶ = twinx(p₁⁶)
+	plot!(p₁Twin⁶, σVals, Nulls⁶;
+		 color = :blue,
+		 ylabel = "Negative log likelihood",
+		 yguidefontcolor = :blue,
+		 ytickfontcolor = :blue,
+		 legend = false)
+
+	# Second plot 
+	p₂⁶ = plot(σVals, fill(SumSquares⁶[1], length(σVals));
+			  xlabel = "σ",
+			  ylabel = "Sum of Squares",
+			  ylim = (0, 2),
+			  legend = false)
+
+	# Combine plots 
+	plot(p₁⁶, p₂⁶, layout= (2,1), size = (600, 700))
+end
+
+# ╔═╡ ccc5b948-d0ca-4585-8780-5c8e6a55c527
+md"hopefully, you can see that the maximum of the likelihood is at the same position as the minimum negative log likelihood.
+
+The least square solution does not depends on σ, so it is just flat."
+
+# ╔═╡ b49edcd4-3084-4c87-881c-54859864883e
+begin
+	@printf("Maximum likelihood = %3.3f, at σ = %3.3f\n", Likelihood⁶[argmax(Likelihood⁶)], σVals[argmax(Likelihood⁶)])
+	@printf("Minimum negative log likelihood = %3.3f, at σ = %3.3f", Nulls⁶[argmin(Nulls⁶)], σVals[argmin(Nulls⁶)])
+end 
+
+# ╔═╡ 1baa19f7-c04f-40d2-82c7-f3b7497d68b1
+md"Plot the best model"
+
+# ╔═╡ 4d10a6fd-b323-4e8c-a987-8471ae802d08
+begin
+	σ⁶ = σVals[argmin(Nulls⁶)]
+	yModel⁶ = Shallow_NN(xModel, β₀⁶, Ω₀⁶, β₁⁶, Ω₁⁶)
+	PlotUnivariateRegression(xModel, yModel⁶; xData=xTrain, yData=yTrain,
+							SigmaModel = σ⁶,
+							title = @sprintf("β₁ = %3.3f, σ = %3.3f", β₁⁶[1], σ⁶))
+end 
+
+# ╔═╡ e077d373-e233-40c8-89b0-d6c20e7a9ed1
+md"Obiviously, to fit the full neural model we would vary all of the 10 parameters of the network in β₀, Ω₀, β₁, Ω₁ (and maybe σ) until we find the combination that have the maximum likelihood/ minimum log likelihood/ least square.
+
+Here we just varied one at a time as it easier to see what is going on. This is known as **coordinate descent.**"
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1464,5 +1558,14 @@ version = "1.13.0+0"
 # ╠═3a3199ea-d2ff-465c-812b-4db8f6a19939
 # ╟─aa99c702-c5c1-4686-b5cd-373767941975
 # ╠═e3fa7e3e-4dd1-49d2-97aa-00736af45391
+# ╟─507b6e05-b495-47ef-9d93-9aef88bd9d34
+# ╟─acf6d53e-e93f-4ab3-b221-bfbd234b77c4
+# ╠═21be3995-7d06-4226-b600-fee776fa5349
+# ╠═948d8def-8672-495c-a522-ee66eb096d9f
+# ╟─ccc5b948-d0ca-4585-8780-5c8e6a55c527
+# ╠═b49edcd4-3084-4c87-881c-54859864883e
+# ╟─1baa19f7-c04f-40d2-82c7-f3b7497d68b1
+# ╠═4d10a6fd-b323-4e8c-a987-8471ae802d08
+# ╟─e077d373-e233-40c8-89b0-d6c20e7a9ed1
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
