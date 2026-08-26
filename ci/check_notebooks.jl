@@ -10,7 +10,7 @@ notebooks = String[]
 for (root, _, files) in walkdir(nbdir)
     for f in files
         path = joinpath(root, f)
-        if endswith(f, ".jl") && occursin("Pluto.jl notebook", read(path, String))
+        if endswith(f, ".jl") && startswith(read(path, String), "### A Pluto.jl notebook ###")
             push!(notebooks, relpath(path, nbdir))
         end
     end
