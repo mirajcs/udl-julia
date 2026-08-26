@@ -6,9 +6,15 @@ ENV["GKSwstype"] = "100"  # GR: render off-screen, no display needed
 import Pluto
 
 nbdir = get(ARGS, 1, pwd())
-notebooks = filter(f -> endswith(f, ".jl") &&
-                        occursin("Pluto.jl notebook", read(joinpath(nbdir, f), String)),
-                   readdir(nbdir; join=false))
+notebooks = String[]
+for (root, _, files) in walkdir(nbdir)
+    for f in files
+        path = joinpath(root, f)
+        if endswith(f, ".jl") && occursin("Pluto.jl notebook", read(path, String))
+            push!(notebooks, relpath(path, nbdir))
+        end
+    end
+end
 
 isempty(notebooks) && (println("No Pluto notebooks found in $nbdir"); exit(1))
 
