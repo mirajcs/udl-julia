@@ -7,9 +7,6 @@ using InteractiveUtils
 # ╔═╡ f1669b32-a140-11f1-ac33-595d32b3e9c3
 using CairoMakie
 
-# ╔═╡ 2a1d4457-aaf0-4e1f-9585-20c8adc97e85
-using Printf
-
 # ╔═╡ 19ab311e-8354-46d5-b2b8-30c28d777a6f
 md"# Notebook 5.3 - Multiclass Cross-Entropy Loss
 
@@ -29,7 +26,7 @@ md"Define a shallow neural network"
 
 # ╔═╡ 22534555-7a78-4b95-9edc-82eaed18804e
 function Shallow_NN(x, β₀, Ω₀, β₁, Ω₁)
-	xRow = reshape(collect(x), 1, :)
+	xRow = vec(x)
 	h₁ = ReLU(β₀ .+ Ω₀ * xRow)
 	y = β₁ .+ Ω₁ * h₁
 	return y 
@@ -51,9 +48,9 @@ end
 md"Utility function for plotting data"
 
 # ╔═╡ 515835c4-3b8e-4da9-b42a-a2b1b4aac6f1
-function PlotMultiClassClassification(xIn::AbstractVector, yOut, λ;
+function PlotMultiClassClassification(xIn::Vector, yOut, λ;
                                       xData = nothing, yData = nothing, title = nothing)
-    fig = Figure(size = (1200, 600))
+    fig = Figure(size = (700, 350))
 
     # Left panel : Model output
     ax1 = Axis(fig[1, 1];
@@ -103,159 +100,16 @@ function  Softmax(ModelOut)
 	# Compute the exponential model out 
 	expModelOut = exp.(ModelOut)
 	# compute the sum of the exponentials 
-	sumExpModelOut = sum(expModelOut, dims = 1)
+	sumExpModelOut = sum(expModelOut)
 	# normalize the exponentials 
-	softmaxModelOut = expModelOut ./ sumExpModelOut
+	softmaxModelOut = expModelOut / sumExpModelOut
 	return softmaxModelOut
-end
-
-# ╔═╡ 20c743f8-ac37-445a-99e5-1be7be3ac81a
-md"Let's create some 1D training set"
-
-# ╔═╡ 9c160055-2cf5-40ce-a1f9-1fa076b18d3f
-begin
-	xTrain = [0.09291784,0.46809093,0.93089486,0.67612654,0.73441752,
-              0.86847339,0.49873225,0.51083168,0.18343972,0.99380898,
-              0.27840809,0.38028817,0.12055708,0.56715537,0.92005746,
-              0.77072270,0.85278176,0.05315950,0.87168699,0.58858043]
-    yTrain = [3,1,2,3,2,1,1,3,3,1,3,1,3,1,2,3,2,3,2,1]
-end
-
-# ╔═╡ d1321f72-43bb-4025-8870-470ffd679167
-md"Plot it"
-
-# ╔═╡ 68a77e02-903c-4dd8-8f50-5c386768361f
-begin
-	β₀, Ω₀, β₁, Ω₁ = GetParameters()
-	xModel = 0:0.01:1.0
-
-	ModelOut = Shallow_NN(xModel, β₀, Ω₀, β₁, Ω₁)
-	λ = Softmax(ModelOut)
-	PlotMultiClassClassification(xModel, ModelOut, λ; xData = xTrain, yData=yTrain)
-end
-
-# ╔═╡ 385afeaa-b70a-4b3c-b4d8-037d056e7953
-md"The left model output and the right model output after the softmax has been applied, so it now lies in the range [0,1] and represent the probablity, that y=0(red), 1(green), and 2(blue). The dots at the bottom show the training data with the same color scheme. So we want the red curve to be high where there are red dots, the green curve to be high where there are green dots, and the blue curve to be high where there are blue dots We'll compute the likelihood and the negative log likelihood."
-
-# ╔═╡ 2dc3cdd1-5753-4501-8c88-a22f46f03057
-md"Return probability under categorical distribution for observed class y
-
-Just take value from row k of $\lambda$ where $y=k$"
-
-# ╔═╡ 139ae6e7-da67-43b1-b867-fbe586628ab9
-function CategoricalDistribution(y::AbstractVector{<:Integer}, λ)
-	return [λ[y[i], i] for i in eachindex(y)]
-end
-
-# ╔═╡ 858b1d24-a762-4509-b4a4-2ddc655e2467
-md"Here are three examples"
-
-# ╔═╡ b72ab063-7608-4ca2-85c8-84a55800a7f0
-begin
-	λEg = reshape([0.2, 0.5, 0.3], 3, 1)
-
-	println(CategoricalDistribution([1], λEg))
-	println(CategoricalDistribution([2], λEg))
-	println(CategoricalDistribution([3], λEg))
-end
-
-# ╔═╡ 7e710b54-6813-4a02-920d-f05fa2b92efa
-md"Now let's compute the likelihood using the function"
-
-# ╔═╡ d599ef40-a920-4923-8ec5-06a9da7c3ebb
-function ComputeLikelihood(y, λ)
-	likelihood = prod(CategoricalDistribution(y, λ))
-	return likelihood
-end
-
-# ╔═╡ 358ee503-5430-447d-bbda-d151074fd2d1
-md"Let's test this."
-
-# ╔═╡ d4c603f0-307c-482a-ac90-6cf4ed527dc5
-begin 
-	β₀¹, Ω₀¹, β₁¹, Ω₁¹ = GetParameters()
-
-	# use our neural network to predict the parameters of categorical probabilities for each data point 
-	ModelOut¹ = Shallow_NN(xTrain, β₀¹, Ω₀¹, β₁¹, Ω₁¹)
-	λ¹ = Softmax(ModelOut¹)
-
-	#compute the likelihood 
-	likelihood¹ = ComputeLikelihood(yTrain, λ¹)
-
-	# Let's double check we get the right answer before proceeding 
-	@printf("Correct answer = %9.9f, your answer = %9.9f", 0.000000041, likelihood¹)
-	
-end
-
-# ╔═╡ 7836cd53-beda-4aa1-b585-dffe3f3def0f
-md"You can see that this gives a very small answer, even for this small 1D dataset, and with the model fitting quite well. This is because it is the product of several probabilities, which are all quite small themselves. This will get out of hand pretty quickly with real datasets -- the likelihood will get so small that we can't represent it with normal finite-precision math
-
-This is why we use negative log likelihood"
-
-# ╔═╡ bfeb74df-af64-48f6-b48e-d3945bad0aec
-md"Return the negative log likelihood of the data under the model"
-
-# ╔═╡ d5001d88-4a54-4386-aa31-7c255bfc2241
-function ComputeNegativeLogLikelihood(y, λ)
-	null = -sum(log.(CategoricalDistribution(y, λ)))
-	return null 
-end
-
-# ╔═╡ c9ed4e3c-f411-4ca4-b50b-b0374a5ecc89
-md"Let's test this."
-
-# ╔═╡ 8e19fff7-a106-4098-944b-949ea9b9b2fd
-begin
-	null¹ = ComputeNegativeLogLikelihood(yTrain, λ¹)
-	# Let's double check we get the right answer before proceeding 
-	@printf("Correct answer = %9.9f, your answer = %9.9f", 17.015457867, null¹)
-end
-
-# ╔═╡ 4ad2e8e9-c860-42b1-b3d2-2a01c3e2fe1d
-md"Now let's investigate finding the maximum likelihood / minimum negative log likelihood solution. For simplicity, we'll assume that all the parameters are fixed except one and look at how the likelihood and negative log likelihood change as we manipulate the last parameter. We'll start with overall $y$, $\beta_1$."
-
-# ╔═╡ f482f387-d7f3-4fce-b0ba-d1f4de6778af
-begin
-	# Define a range of values for the parameters 
-	β₁Vals = -2:0.1:6
-
-	# Initialize the parameters 
-	β₀², Ω₀², β₁², Ω₁² = GetParameters()
-
-	# Run the network with new parameters 
-	ModelOut² = [Shallow_NN(xModel, β₀², Ω₀², β₁Val, Ω₁²) for β₁Val in β₁Vals]
-	λ² = Softmax.(ModelOut²)
-
-	# Compute and store the two values 
-	pairs² = map(β₁Vals) do β₁Val 
-		β₁cur = copy(β₁²) 
-		β₁cur[1] = β₁Val 
-		λcur = Softmax(Shallow_NN(xTrain, β₀², Ω₀, β₁cur, Ω₁²))
-		(ComputeLikelihood(yTrain, λcur), ComputeNegativeLogLikelihood(yTrain, λcur))
-	end
-
-	
-	# Draw the model for every 20th parameter setting 
-	Plots³ = let 
-		β₀³, Ω₀³, β₁³, Ω₁³ = GetParameters()
-		idxs = 1:20:length(β₁Vals)
-		map(idxs) do k 
-			β₁cur = copy(β₁³)
-			β₁cur[1] = β₁Vals[k]
-			mOut = Shallow_NN(xModel, β₀³, Ω₀³, β₁cur, Ω₁³)
-			PlotMultiClassClassification(xModel, mOut, Softmax(mOut);
-										xData = xTrain, yData = yTrain,
-										title = "β₁[1] = $(round(β₁Vals[k], digits = 2))")
-		end 
-	end 
-	Plots³
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
-Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
 CairoMakie = "~0.15.13"
@@ -267,7 +121,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "81a3e3e9466a62da62c62a0200e49b2dee05ce69"
+project_hash = "273213d8845cb68d6405d362c1aa6df679e54c29"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1903,7 +1757,6 @@ version = "4.1.0+0"
 # ╔═╡ Cell order:
 # ╟─19ab311e-8354-46d5-b2b8-30c28d777a6f
 # ╠═f1669b32-a140-11f1-ac33-595d32b3e9c3
-# ╠═2a1d4457-aaf0-4e1f-9585-20c8adc97e85
 # ╟─7569217e-4e60-41b2-8ace-cc2dc7e1bf17
 # ╠═c11b0374-8eaa-4d20-ad71-a24f03919dba
 # ╟─1859d3fd-e409-4452-8557-c13d46f11681
@@ -1914,25 +1767,5 @@ version = "4.1.0+0"
 # ╠═515835c4-3b8e-4da9-b42a-a2b1b4aac6f1
 # ╟─14ced079-b38d-441a-abf0-45ba1536a19e
 # ╠═cc929350-c2e3-4620-b5b3-1ce83f594eb8
-# ╟─20c743f8-ac37-445a-99e5-1be7be3ac81a
-# ╠═9c160055-2cf5-40ce-a1f9-1fa076b18d3f
-# ╟─d1321f72-43bb-4025-8870-470ffd679167
-# ╠═68a77e02-903c-4dd8-8f50-5c386768361f
-# ╟─385afeaa-b70a-4b3c-b4d8-037d056e7953
-# ╟─2dc3cdd1-5753-4501-8c88-a22f46f03057
-# ╠═139ae6e7-da67-43b1-b867-fbe586628ab9
-# ╟─858b1d24-a762-4509-b4a4-2ddc655e2467
-# ╠═b72ab063-7608-4ca2-85c8-84a55800a7f0
-# ╟─7e710b54-6813-4a02-920d-f05fa2b92efa
-# ╠═d599ef40-a920-4923-8ec5-06a9da7c3ebb
-# ╟─358ee503-5430-447d-bbda-d151074fd2d1
-# ╠═d4c603f0-307c-482a-ac90-6cf4ed527dc5
-# ╟─7836cd53-beda-4aa1-b585-dffe3f3def0f
-# ╟─bfeb74df-af64-48f6-b48e-d3945bad0aec
-# ╠═d5001d88-4a54-4386-aa31-7c255bfc2241
-# ╟─c9ed4e3c-f411-4ca4-b50b-b0374a5ecc89
-# ╠═8e19fff7-a106-4098-944b-949ea9b9b2fd
-# ╟─4ad2e8e9-c860-42b1-b3d2-2a01c3e2fe1d
-# ╠═f482f387-d7f3-4fce-b0ba-d1f4de6778af
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
