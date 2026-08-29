@@ -258,6 +258,43 @@ end
 # ╔═╡ 4a22458d-8a0c-4b66-9641-4e289bc0e13d
 PlutoUI.ExperimentalLayout.vbox(Plots³)
 
+# ╔═╡ 7c589420-bbc8-4812-ba25-534842f1d1e5
+md"Let's plot the likelihood and negative log likelihood as a function of the value of the offset β₁."
+
+# ╔═╡ 3791c3b6-fb88-4536-a528-04f2fc9d111a
+begin 
+	fig = Figure()
+
+	likelihood² = vec(first.(pairs²))
+	null² = last.(pairs²)
+
+	# Left axis: likelihood 
+	ax₁ = Axis(fig[1,1];
+			  xlabel = L"\beta_1[1]",
+			  ylabel = "likelihood",
+			  ylabelcolor = :red,
+			  yticklabelcolor = :red)
+	lines!(ax₁, β₁Vals, likelihood², color = :red)
+
+	# Right axis: negative log likelihood 
+	ax₂ = Axis(fig[1,1];
+			  ylabel="Negative log likelihood",
+			  ylabelcolor = :blue,
+			  yticklabelcolor = :blue,
+			  yaxisposition = :right)
+
+	hidespines!(ax₂) # avoid drawing a second box over the first 
+	hidexdecorations!(ax₂) # x-axis is shared with ax_1
+	lines!(ax₂, β₁Vals, null², color = :blue)
+
+	vlines!(ax₁, β₁Vals[argmax(likelihood²)], linestyle=:dot, color = :black)
+
+	fig
+end
+
+# ╔═╡ 1e57ec35-18c4-4296-bbb9-05a4100702fc
+likelihood²
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1985,5 +2022,8 @@ version = "4.1.0+0"
 # ╟─4ad2e8e9-c860-42b1-b3d2-2a01c3e2fe1d
 # ╠═f482f387-d7f3-4fce-b0ba-d1f4de6778af
 # ╠═4a22458d-8a0c-4b66-9641-4e289bc0e13d
+# ╟─7c589420-bbc8-4812-ba25-534842f1d1e5
+# ╠═3791c3b6-fb88-4536-a528-04f2fc9d111a
+# ╠═1e57ec35-18c4-4296-bbb9-05a4100702fc
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
