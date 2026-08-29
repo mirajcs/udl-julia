@@ -293,7 +293,27 @@ begin
 end
 
 # ╔═╡ 1e57ec35-18c4-4296-bbb9-05a4100702fc
-likelihood²
+md"You can see that the maximum of the likelihood is at the same position as the minimum negative likelihood solution.
+
+Let's Check that. "
+
+# ╔═╡ 5421d063-af0e-4a05-b828-0b8fa20dd942
+begin
+	@printf("Maximum likelihood = %9.9f, at β₁ = %3.3f\n", likelihood²[argmax(likelihood²)], β₁Vals[argmax(likelihood²)])
+	@printf("Minimum negative log likelihood = %9.9f, at β₁ = %3.3f", null²[argmin(null²)], β₁Vals[argmin(null²)])
+end
+
+# ╔═╡ 830dcbdb-5945-41f3-a81b-1a9ba094a6fd
+md"Plot the best model."
+
+# ╔═╡ ff48e7e5-1ade-4526-aa9a-dc9581898720
+begin
+	β₁²[1] = β₁Vals[argmin(null²)]
+	ModelOut⁴ = Shallow_NN(xModel, β₀², Ω₀², β₁², Ω₁²) 
+	λModelOut⁴ = Softmax(ModelOut⁴)
+
+	PlotMultiClassClassification(xModel, ModelOut⁴, λModelOut⁴, xData = xTrain, yData= yTrain, title=@sprintf("β₁[1] = %3.3f", β₁²[1]))
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2024,6 +2044,9 @@ version = "4.1.0+0"
 # ╠═4a22458d-8a0c-4b66-9641-4e289bc0e13d
 # ╟─7c589420-bbc8-4812-ba25-534842f1d1e5
 # ╠═3791c3b6-fb88-4536-a528-04f2fc9d111a
-# ╠═1e57ec35-18c4-4296-bbb9-05a4100702fc
+# ╟─1e57ec35-18c4-4296-bbb9-05a4100702fc
+# ╠═5421d063-af0e-4a05-b828-0b8fa20dd942
+# ╟─830dcbdb-5945-41f3-a81b-1a9ba094a6fd
+# ╠═ff48e7e5-1ade-4526-aa9a-dc9581898720
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
