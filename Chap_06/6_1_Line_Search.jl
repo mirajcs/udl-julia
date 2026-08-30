@@ -122,7 +122,10 @@ function LineSearch(LossFunction; Thresh = 1e-4, MaxIter = 10, DrawFlag = true)
 end
 
 # ╔═╡ e3e1653b-8590-4612-802f-81db8e95b353
-LineSearch(LossFunction, DrawFlag=true)
+sol, figs = LineSearch(LossFunction, DrawFlag=true)
+
+# ╔═╡ 19ea2895-dada-45f8-a936-823ee1fa4d55
+println("Solution = $sol, loss = $(LossFunction(sol))")
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1828,5 +1831,6 @@ version = "4.1.0+0"
 # ╟─7379f292-c52b-4671-ba4a-fbaf5a068936
 # ╠═8f828583-9ea6-47d9-99b0-0c58fdc23ab7
 # ╠═e3e1653b-8590-4612-802f-81db8e95b353
+# ╠═19ea2895-dada-45f8-a936-823ee1fa4d55
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
