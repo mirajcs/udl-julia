@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ 0be928ae-7b07-46ee-b08d-3c56ed532998
-using Makie
+using CairoMakie
 
 # ╔═╡ 7e57d419-f0d5-4d69-a9ac-26d869c4b763
 using Printf
@@ -16,16 +16,114 @@ md"# Notebook 6.1 - Line Search
 This notebook investigates how to fun the minimum of a 1D function using line search as described in Figure 6.10"
 
 # ╔═╡ 1056a04b-bbe4-4b35-a93e-0d8e216c6604
+md"Create a simple 1D function"
 
+# ╔═╡ 3b299f28-f396-43af-b312-efb77af24b7c
+LossFunction(ϕ) = @. 1 - 0.5*exp(-(ϕ - 0.65)^2 / 0.1) - 0.45*exp(-(ϕ - 0.35)^2 / 0.02)
+
+# ╔═╡ 3dc1adbb-4f9c-4162-a04c-ef0e861c1f66
+function DrawFunction(LossFunction; a = nothing, b = nothing, c = nothing, d = nothing)
+	ϕ = 0:0.01:1.0 
+
+	fig = Figure()
+	ax = Axis(fig[1,1];
+			 xlabel = L"\phi",
+			 ylabel = L"L[\phi]",
+			 limits = (0,1,0,1))
+
+	lines!(ax, ϕ, LossFunction(ϕ); color = :red)
+
+	if !isnothing(a) && !isnothing(b) && !isnothing(c) && !isnothing(d) 
+		vspan!(ax, a, d; color = (:black, 0.2))
+		vlines!(ax, [a, b, c, d]; color = :blue)
+	end
+
+	return fig 
+end
+
+# ╔═╡ 907622bb-08ed-41bc-aad8-255056c30cb2
+md"Draw this function"
+
+# ╔═╡ 93c4a169-518f-444e-a6ed-c42e04295eb4
+DrawFunction(LossFunction)
+
+# ╔═╡ 7379f292-c52b-4671-ba4a-fbaf5a068936
+md"Now create a line search procedure to find the minimum in the range [0,1]"
+
+# ╔═╡ 8f828583-9ea6-47d9-99b0-0c58fdc23ab7
+function LineSearch(LossFunction; Thresh = 1e-4, MaxIter = 10, DrawFlag = True)
+
+	# Initialize 4 points along the range we are going to search 
+	a = 0.0 
+	b = 1/3 
+	c = 2/3 
+	d = 1.0
+	NIter = 1
+
+	# while we haven't found the minimum closely enough 
+	while abs(b - c) > Thresh && NIter <= MaxIter
+		# Increment iteration counter 
+		NIter += 1
+
+		# calculate all four points 
+		Lossa = LossFunction(a)
+		Lossb = LossFunction(b)
+		Lossc = LossFunction(c)
+		Lossd = LossFunction(d)
+
+		if DrawFlag
+			DrawFunction(LossFunction; a = a, b = b, c = c, d = d)
+		end 
+
+		println("Iter $NIter, a = $(round(a, digits = 3)), b = $(round(b, digits = 3)), c = $(round(c, digits = 3)), d = $(round(d, digits = 3))")
+	
+
+		# Rule 1: If the HEIGHT at a is less than at b, c, and d. 
+			# move b, c, d to half their distance from a (bring them closet to a)
+		if Lossa < Lossb && Lossa < Lossc && Lossa < Lossd 
+			b = b/2 
+			c = c/2 
+			d = d/2 
+			continue
+		end
+
+		# Rule 2: If HEIGHT at b < HEIGHT at c then 
+			# d becomes c 
+			# b becomes 1/3 of the way from a to new d 
+			# c becomes 2/3 of the way from a to new d 
+		if Lossb < Lossc
+			d = c 
+			b = a + (d - a)/3
+			c = a + (2/3) * (d - a)
+			continue
+		end
+
+		# Rule 3: If HEIGHT at c < HEIGHT at b then 
+			# a becomes b 
+			# b becomes 1/3 of the way from new a to b 
+			# c becomes 2/3 of the way from new a to d 
+		if Lossc < Lossb 
+			a = b 
+			b = a + (d - a)/3
+			c = a + (2/3) * (d - a)
+			continue
+		end
+	end
+
+	# find solution is average of b and c 
+	sol = (b + c) / 2
+
+	return sol 
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
-Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
-Makie = "~0.24.13"
+CairoMakie = "~0.15.13"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -34,7 +132,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "695a06c563c648c4694c4460870a4694bdd33e4f"
+project_hash = "81a3e3e9466a62da62c62a0200e49b2dee05ce69"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -168,6 +266,18 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "e329286945d0cfc04456972ea732551869af1cfc"
 uuid = "4e9b3aee-d8a1-5a3d-ad8b-7d824db253f0"
 version = "1.0.1+0"
+
+[[deps.Cairo]]
+deps = ["Cairo_jll", "Colors", "Glib_jll", "Graphics", "Libdl", "Pango_jll"]
+git-tree-sha1 = "71aa551c5c33f1a4415867fe06b7844faadb0ae9"
+uuid = "159f3aea-2a34-519c-b102-8c37f9878175"
+version = "1.1.1"
+
+[[deps.CairoMakie]]
+deps = ["CRC32c", "Cairo", "Cairo_jll", "Colors", "FileIO", "FreeType", "GeometryBasics", "LinearAlgebra", "Makie", "PrecompileTools"]
+git-tree-sha1 = "47142129b1777e21da58cff265050b10d8560588"
+uuid = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+version = "0.15.13"
 
 [[deps.Cairo_jll]]
 deps = ["Artifacts", "Bzip2_jll", "CompilerSupportLibraries_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "Libdl", "Pixman_jll", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
@@ -527,6 +637,12 @@ deps = ["Artifacts", "GettextRuntime_jll", "JLLWrappers", "Libdl", "Libffi_jll",
 git-tree-sha1 = "090526e65de8f69648ac156daae153de8b56df62"
 uuid = "7746bdde-850d-59dc-9ae8-88ece973131d"
 version = "2.88.3+0"
+
+[[deps.Graphics]]
+deps = ["Colors", "LinearAlgebra", "NaNMath"]
+git-tree-sha1 = "a641238db938fff9b2f60d08ed9030387daf428c"
+uuid = "a2bd30eb-e257-5431-a919-1863eab51364"
+version = "1.1.3"
 
 [[deps.Graphite2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -915,6 +1031,12 @@ git-tree-sha1 = "283bf85d4a767481dd924dff0eee1735e95f449e"
 uuid = "46d2c3a1-f734-5fdb-9937-b9b9aeba4221"
 version = "0.2.7"
 
+[[deps.NaNMath]]
+deps = ["OpenLibm_jll"]
+git-tree-sha1 = "dbd2e8cd2c1c27f0b584f6661b4309609c5a685e"
+uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
+version = "1.1.4"
+
 [[deps.Netpbm]]
 deps = ["FileIO", "ImageCore", "ImageMetadata"]
 git-tree-sha1 = "d92b107dbb887293622df7697a2223f9f8176fcd"
@@ -1027,6 +1149,12 @@ deps = ["OffsetArrays"]
 git-tree-sha1 = "0fac6313486baae819364c52b4f483450a9d793f"
 uuid = "5432bcbf-9aad-5242-b902-cca2824c8663"
 version = "0.5.12"
+
+[[deps.Pango_jll]]
+deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "FriBidi_jll", "Glib_jll", "HarfBuzz_jll", "JLLWrappers", "Libdl"]
+git-tree-sha1 = "7126b66b721a605a2fec966a2874c5ed53258eb3"
+uuid = "36c8627f-9965-5494-a995-c6b170f724f3"
+version = "1.58.0+0"
 
 [[deps.Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
@@ -1641,6 +1769,12 @@ version = "4.1.0+0"
 # ╟─218eb72a-a3d0-11f1-bb77-6554fe57faf8
 # ╠═0be928ae-7b07-46ee-b08d-3c56ed532998
 # ╠═7e57d419-f0d5-4d69-a9ac-26d869c4b763
-# ╠═1056a04b-bbe4-4b35-a93e-0d8e216c6604
+# ╟─1056a04b-bbe4-4b35-a93e-0d8e216c6604
+# ╠═3b299f28-f396-43af-b312-efb77af24b7c
+# ╠═3dc1adbb-4f9c-4162-a04c-ef0e861c1f66
+# ╟─907622bb-08ed-41bc-aad8-255056c30cb2
+# ╠═93c4a169-518f-444e-a6ed-c42e04295eb4
+# ╟─7379f292-c52b-4671-ba4a-fbaf5a068936
+# ╠═8f828583-9ea6-47d9-99b0-0c58fdc23ab7
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
