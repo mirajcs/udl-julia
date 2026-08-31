@@ -10,6 +10,9 @@ using CairoMakie
 # ╔═╡ 577e23e6-28ff-406b-b7a2-14e3ff3b4449
 using Colors
 
+# ╔═╡ 359061b3-f293-4b0c-8ec7-adb4b85cb109
+using PlutoUI
+
 # ╔═╡ 83bc3e9e-a4aa-11f1-a9ae-277ea94414f2
 md"# Notebook 6.2 - Gradient Descent
 
@@ -102,7 +105,7 @@ function DrawLossFunction(ComputeLoss, Data, Model; ϕIters = nothing)
 	Colorbar(fig[1,2], hm; label = "Loss")
 
 	if ϕIters !== nothing 
-		scatterlines!(ax, ϕIters[1], ϕIters[2]; color = :green)
+		scatterlines!(ax, ϕIters[1, :], ϕIters[2, :]; color = :green, linewidth = 2, markersize = 9, strokecolor = :black, strokewidth = 1)
 	end
 
 	return fig 
@@ -214,15 +217,54 @@ function LineSearch(Data, Model, ϕ, gradient; Thresh = 1e-5, MaxDist = 0.1, Max
 	return (b + c)/ 2
 end
 
+# ╔═╡ bf7f67ae-9091-44a3-930b-b32b7081f5a9
+function GradientDescentStep(ϕ, Data, Model)
+	gradient = vec(ComputeGradient(Data[1], Data[2], ϕ))
+	α = LineSearch(Data, Model, ϕ, gradient)
+	ϕNew = ϕ - α * gradient
+
+	return ϕNew 
+end 
+
+# ╔═╡ c94ccd7a-800d-4180-9b5f-582f8fc38919
+md"Draw"
+
+# ╔═╡ 1ed1d52c-cc2c-486e-aedf-b3b3bbdd711d
+function FinalDraw() 
+	NSteps = 10 
+	ϕstart = [1.6, -0.5]
+
+	# Every iterate: scan GradientDescentStep over the steps 
+	ϕAll = accumulate((ϕ, _) -> GradientDescentStep(ϕ, Data, Model), 1:NSteps; init = ϕstart)
+
+	pushfirst!(ϕAll, ϕstart)
+
+	losses = [ComputeLoss(Data[1], Data[2], Model, ϕ) for ϕ in ϕAll]
+
+	labels = ["Initial parameters"; ["Iteration $c" for c in 1:NSteps]]
+
+	figs = [DrawModel(Data, Model, ϕ; title = "$label, Loss = $(round(loss; digits =3))") for (ϕ, label, loss) in zip(ϕAll, labels, losses)]
+
+	push!(figs, DrawLossFunction(ComputeLoss, Data, Model; ϕIters = stack(ϕAll)))
+
+	figs 
+
+end 
+
+# ╔═╡ a307c050-cd8a-40fa-938a-f9e61567668e
+PlutoUI.ExperimentalLayout.vbox(FinalDraw())
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
 CairoMakie = "~0.15.13"
 Colors = "~0.13.1"
+PlutoUI = "~0.7.83"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -231,21 +273,23 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "591916b5f7da543df6c2bad7ddbca3ffa98e3f8c"
+project_hash = "d0ae08bb6248c98d2d847d0ac9156b2c1a154a89"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
 git-tree-sha1 = "d92ad398961a3ed262d8bf04a1a2b8340f915fef"
 uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
 version = "1.5.0"
+weakdeps = ["ChainRulesCore", "Test"]
 
     [deps.AbstractFFTs.extensions]
     AbstractFFTsChainRulesCoreExt = "ChainRulesCore"
     AbstractFFTsTestExt = "Test"
 
-    [deps.AbstractFFTs.weakdeps]
-    ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-    Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+[[deps.AbstractPlutoDingetjes]]
+git-tree-sha1 = "6c3913f4e9bdf6ba3c08041a446fb1332716cbc2"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.4.0"
 
 [[deps.AbstractTrees]]
 git-tree-sha1 = "2d9c9a55f9c93e8887ad391fbae72f8ef55e1177"
@@ -630,14 +674,11 @@ deps = ["Compat", "Dates"]
 git-tree-sha1 = "3bab2c5aa25e7840a4b065805c0cdfc01f3068d2"
 uuid = "48062228-2e41-5def-b9a4-89aafe57970f"
 version = "0.9.24"
+weakdeps = ["Mmap", "Test"]
 
     [deps.FilePathsBase.extensions]
     FilePathsBaseMmapExt = "Mmap"
     FilePathsBaseTestExt = "Test"
-
-    [deps.FilePathsBase.weakdeps]
-    Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
-    Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
@@ -767,6 +808,24 @@ git-tree-sha1 = "31bb6c92405c084617facc1d7ed9eb6c402d061e"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.30"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "179267cfa5e712760cd43dcae385d7ea90cc25a4"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.5"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "d1a86724f81bcd184a38fd284ce183ec067d71a0"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "1.0.0"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "0ee181ec08df7d7c911901ea38baf16f755114dc"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "1.0.0"
+
 [[deps.ImageAxes]]
 deps = ["AxisArrays", "ImageBase", "ImageCore", "Reexport", "SimpleTraits"]
 git-tree-sha1 = "e12629406c6c4442539436581041d372d69c55ba"
@@ -882,14 +941,11 @@ version = "0.7.14"
 git-tree-sha1 = "a779299d77cd080bf77b97535acecd73e1c5e5cb"
 uuid = "3587e190-3f89-42d0-90ee-14403ec27112"
 version = "0.1.17"
+weakdeps = ["Dates", "Test"]
 
     [deps.InverseFunctions.extensions]
     InverseFunctionsDatesExt = "Dates"
     InverseFunctionsTestExt = "Test"
-
-    [deps.InverseFunctions.weakdeps]
-    Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
-    Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.IrrationalConstants]]
 git-tree-sha1 = "b2d91fe939cae05960e760110b328288867b5758"
@@ -1070,6 +1126,11 @@ version = "1.0.1"
 [[deps.Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 version = "1.11.0"
+
+[[deps.MIMEs]]
+git-tree-sha1 = "c64d943587f7187e751162b3b84445bbbd79f691"
+uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
+version = "1.1.0"
 
 [[deps.MacroTools]]
 git-tree-sha1 = "1e0228a030642014fe5cfe68c2c0a818f9e3f522"
@@ -1287,6 +1348,12 @@ deps = ["ColorSchemes", "Colors", "Dates", "PrecompileTools", "Printf", "Random"
 git-tree-sha1 = "26ca162858917496748aad52bb5d3be4d26a228a"
 uuid = "995b91a9-d308-5afd-9ec6-746e21dbc043"
 version = "1.4.4"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Downloads", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
+git-tree-sha1 = "e189d0623e7ce9c37389bac17e80aac3b0302e75"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.83"
 
 [[deps.PolygonOps]]
 git-tree-sha1 = "77b3d3605fc1cd0b42d95eba87dfcd2bf67d5ff6"
@@ -1639,6 +1706,11 @@ git-tree-sha1 = "1feb45f88d133a655e001435632f019a9a1bcdb6"
 uuid = "62fd8b95-f654-4bbd-a8a5-9c27f68ccd50"
 version = "0.1.1"
 
+[[deps.Test]]
+deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
+uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+version = "1.11.0"
+
 [[deps.TiffImages]]
 deps = ["CodecZstd", "ColorTypes", "DataStructures", "DocStringExtensions", "FileIO", "FixedPointNumbers", "IndirectArrays", "Inflate", "Mmap", "OffsetArrays", "PkgVersion", "PrecompileTools", "ProgressMeter", "SIMD", "UUIDs"]
 git-tree-sha1 = "9ca5f1f2d42f80df4b8c9f6ab5a64f438bbd9976"
@@ -1650,10 +1722,20 @@ git-tree-sha1 = "0c45878dcfdcfa8480052b6ab162cdd138781742"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.11.3"
 
+[[deps.Tricks]]
+git-tree-sha1 = "311349fd1c93a31f783f977a71e8b062a57d4101"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.13"
+
 [[deps.TriplotBase]]
 git-tree-sha1 = "4d4ed7f294cda19382ff7de4c137d24d16adc89b"
 uuid = "981d1d27-644d-49a2-9326-4793e63143c3"
 version = "0.1.0"
+
+[[deps.URIs]]
+git-tree-sha1 = "908fec9df6c5de98548ead82a468c95ccf6cd263"
+uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
+version = "1.7.0"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
@@ -1869,6 +1951,7 @@ version = "4.1.0+0"
 # ╟─ea3b660c-74f1-45a5-98ed-f44951924fae
 # ╠═4f0b5965-6139-461c-888d-e145b6fc5d6f
 # ╠═577e23e6-28ff-406b-b7a2-14e3ff3b4449
+# ╠═359061b3-f293-4b0c-8ec7-adb4b85cb109
 # ╠═ebe69524-d9a5-48e8-8d69-2a06890e5982
 # ╟─65402149-5369-4f6b-8fb7-8b9473502432
 # ╠═6886c497-30ed-498f-a56a-b1bfe581266f
@@ -1893,5 +1976,9 @@ version = "4.1.0+0"
 # ╟─e4ee14d8-8508-4315-b48a-17e820fc6363
 # ╠═427de3ea-3ae7-4a41-a155-63b9c0b49adf
 # ╠═93f9c5ff-78f5-490a-ac92-dcc2c8f5a758
+# ╠═bf7f67ae-9091-44a3-930b-b32b7081f5a9
+# ╟─c94ccd7a-800d-4180-9b5f-582f8fc38919
+# ╠═1ed1d52c-cc2c-486e-aedf-b3b3bbdd711d
+# ╠═a307c050-cd8a-40fa-938a-f9e61567668e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
