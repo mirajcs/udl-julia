@@ -73,8 +73,18 @@ md"Now let's compute the sum of squares loss for the training data. "
 
 # ╔═╡ 101476b4-0244-45c5-89bd-4055a1d2d29f
 function ComputeLoss(xData, yData, Model, ϕ)
-	return sum((Model(ϕ, xData) - yData)^2)
+	return sum((Model(ϕ, xData) - yData).^2)
 end 
+
+# ╔═╡ 55440bdf-97f8-46e9-a947-e4f714d3e216
+md"Let's just teat that we got that right"
+
+# ╔═╡ 5feffeac-6e98-41ee-b952-cb7790e824cb
+begin
+	ϕ₁ = [0.6, -0.2]
+	loss = ComputeLoss(Data[1], Data[2], Model, ϕ₁)
+	println("Your loss = $(round(loss, digits=3)), correct loss = 16.419")
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1738,5 +1748,7 @@ version = "4.1.0+0"
 # ╠═6da4fc30-182f-47d1-ae84-42b856ca4ade
 # ╟─91a11b53-0358-4c69-a703-81f677a6a6c6
 # ╠═101476b4-0244-45c5-89bd-4055a1d2d29f
+# ╟─55440bdf-97f8-46e9-a947-e4f714d3e216
+# ╠═5feffeac-6e98-41ee-b952-cb7790e824cb
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
