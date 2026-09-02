@@ -164,6 +164,44 @@ end
 # ╔═╡ 0cdb3542-68fb-4023-8b09-4fe47789e30a
 ComputeGradient(xData, yData, ϕ) = [GaborDerivϕ₁(xData, yData, ϕ), GaborDerivϕ₂(xData, yData, ϕ)]
 
+# ╔═╡ c706201e-119f-4e77-a269-4778be85739a
+md"We can check we got this right using a trick known as **finite differences**. If we evaluate the function and then change one of the parameters by a very small amount and normalize by that amount, we get an approximation to the gradient, so; 
+
+$$\dfrac{\partial L}{\partial \phi} \approx\dfrac{L[\phi_0 + \delta, \phi_1] - L[\phi_0, \phi_1]}{\delta}$$
+
+$$\dfrac{\partial L}{\partial \phi_1} = \dfrac{L[\phi_0, \phi_1 + \delta]-L[\phi_0, \phi_1]}{\delta}$$
+
+We can't do this when there are many parameters; for a million parameters, we would have to evaluate the loss function two million times, and usually computing the gradients directly is much more efficient. "
+
+# ╔═╡ 05957c70-62d6-421d-a55f-43f510af5a86
+md"Compute the gradient using our function"
+
+# ╔═╡ a77a795b-cb1c-4bcb-b930-3a1500e81f92
+begin
+	gradient = ComputeGradient(Data[1], Data[2], ϕ)
+	println("Our gradient : $(gradient)")
+end
+
+# ╔═╡ b1e7b266-963c-442a-b089-2e75540c4e30
+md"Approximate the gradient with finite differences"
+
+# ╔═╡ c0f89d70-1af7-4518-ad89-da62445c28f8
+begin
+	δ = 1e-4
+	dl_ϕ₁_est = (ComputeLoss(Data[1], Data[2], Model, ϕ + [δ, 0]) - ComputeLoss(Data[1], Data[2], Model, ϕ))/ δ
+	dl_ϕ₂_est = (ComputeLoss(Data[1], Data[2], Model, ϕ + [0, δ]) - ComputeLoss(Data[1], Data[2], Model, ϕ))/ δ
+
+	println("Approx gradients: [$(dl_ϕ₁_est), $(dl_ϕ₂_est)]")
+end
+
+# ╔═╡ 5de2511d-2af9-4ff9-b238-91d726c2dfea
+md"Now we are ready to perform gradient descent. We'll need to use our line search routine from Notebook 6.1, which I've reproduced here plus the helper function LossFunction1D that converts from a 2D problem to a 1D problem. "
+
+# ╔═╡ a421a5e5-07f7-4d87-8ad0-87046a37e01c
+function LossFunction1D(DistProp, Data, Model, ϕStart, Gradient)
+	return ComputeLoss(Data[1], Data[2], Model, ϕStart + gradient * DistProp)
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -2149,5 +2187,12 @@ version = "4.1.0+0"
 # ╠═898029a2-5339-4850-95d0-e205eb7728c9
 # ╠═21053ba6-0e61-40a9-99ac-54c24328f101
 # ╠═0cdb3542-68fb-4023-8b09-4fe47789e30a
+# ╟─c706201e-119f-4e77-a269-4778be85739a
+# ╟─05957c70-62d6-421d-a55f-43f510af5a86
+# ╠═a77a795b-cb1c-4bcb-b930-3a1500e81f92
+# ╟─b1e7b266-963c-442a-b089-2e75540c4e30
+# ╠═c0f89d70-1af7-4518-ad89-da62445c28f8
+# ╟─5de2511d-2af9-4ff9-b238-91d726c2dfea
+# ╠═a421a5e5-07f7-4d87-8ad0-87046a37e01c
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
