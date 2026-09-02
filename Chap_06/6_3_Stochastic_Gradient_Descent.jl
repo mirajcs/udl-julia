@@ -68,6 +68,14 @@ md"Initialize the parameters and draw the model."
 # ╔═╡ 6da4fc30-182f-47d1-ae84-42b856ca4ade
 DrawModel(Data, Model, ϕ; title = "Initial Parameters")
 
+# ╔═╡ 91a11b53-0358-4c69-a703-81f677a6a6c6
+md"Now let's compute the sum of squares loss for the training data. "
+
+# ╔═╡ 101476b4-0244-45c5-89bd-4055a1d2d29f
+function ComputeLoss(xData, yData, Model, ϕ)
+	return sum((Model(ϕ, xData) - yData)^2)
+end 
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1728,5 +1736,7 @@ version = "4.1.0+0"
 # ╟─d2909dac-3aea-4d76-9788-606f237f41cb
 # ╠═a4712b4c-6f2a-44e6-bb03-dd6f38f073ae
 # ╠═6da4fc30-182f-47d1-ae84-42b856ca4ade
+# ╟─91a11b53-0358-4c69-a703-81f677a6a6c6
+# ╠═101476b4-0244-45c5-89bd-4055a1d2d29f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
