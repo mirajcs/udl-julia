@@ -199,7 +199,57 @@ md"Now we are ready to perform gradient descent. We'll need to use our line sear
 
 # ╔═╡ a421a5e5-07f7-4d87-8ad0-87046a37e01c
 function LossFunction1D(DistProp, Data, Model, ϕStart, Gradient)
-	return ComputeLoss(Data[1], Data[2], Model, ϕStart + gradient * DistProp)
+	return ComputeLoss(Data[1], Data[2], Model, ϕStart + Gradient * DistProp)
+end
+
+# ╔═╡ d3e80371-ce6f-4922-a30b-19f17af05ce9
+function LineSearch(Data, Model, ϕ, Gradient; Thresh=1e-4, MaxDist = 0.1,  MaxIter = 15, verbose=false)
+	# Initialize four points along the range we are going to search 
+	a = 0 
+	b = 1/3 * MaxDist
+	c = 2/3 * MaxDist 
+	d = 1.0 * MaxDist
+	NIter = 0 
+
+	# while we haven't found the minimum closely enough 
+	while abs(b - c) > Thresh && NIter < MaxIter
+		NIter += 1
+
+		# Calculate all four points 
+		Lossa = LossFunction1D(a, Data, Model, ϕ, Gradient)
+		Lossb = LossFunction1D(b, Data, Model, ϕ, Gradient)
+		Lossc = LossFunction1D(c, Data, Model, ϕ, Gradient)
+		Lossd = LossFunction1D(d, Data, Model, ϕ, Gradient)
+
+		if verbose
+			println("Iter $(NIter), a = $(a), b = $(b), c = $(c), d = $(d)")
+			println("a $(Lossa), b $(Lossb), c $(Lossc), d $(Lossd)")
+		end
+
+		# Rule 1: if a has the smallest, hlave the distance from a to b, c, d.
+		if argmin((Lossa, Lossb, Lossc, Lossd)) == 1
+			b = a + (b - a) /2
+			c = a + (c - a)/2
+			d = a + (d - a) / 2
+			continue 
+		end
+
+		# Rule 2: if b beats c, the minimum is in [a,c] - pull d in to c then re-space b and c at 1/3 and 2/3 marks of [a,d]
+		if Lossb < Lossc 
+			d = c 
+			b = a + (d - a)/3 
+			c = a + (2/3) * (d - a)
+			continue 
+		end
+
+		# Rule 3: Otherwise c beats b, the minimum in [b,d], push a out to b the re-space b and c at the 1/3 and 2/3 marks of the new [a,d]
+
+		a = b 
+		b = a + (d - a)/3 
+		c = a + (2/3) * (d - a)
+	end
+	# Return the midpoint of the two inner points 
+	return (b + c)/ 2
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -2194,5 +2244,6 @@ version = "4.1.0+0"
 # ╠═c0f89d70-1af7-4518-ad89-da62445c28f8
 # ╟─5de2511d-2af9-4ff9-b238-91d726c2dfea
 # ╠═a421a5e5-07f7-4d87-8ad0-87046a37e01c
+# ╠═d3e80371-ce6f-4922-a30b-19f17af05ce9
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
