@@ -32,9 +32,9 @@ md"Define the model"
 
 # ╔═╡ 2df5a812-f514-4579-8716-d4d11d179e54
 function Model(ϕ, x)
-	SinComponent = sin(ϕ[1] + 0.06*ϕ[1]*x)
-	GaussComponent = exp(-(ϕ[0] + 0.06*ϕ[1]*x)^2 / 32.0)
-	y = SinComponent * GaussComponent
+	SinComponent = sin.(ϕ[1] .+ 0.06*ϕ[2]*x)
+	GaussComponent = exp.(-(ϕ[1] .+ 0.06*ϕ[2]*x).^2 / 32.0)
+	y = SinComponent .* GaussComponent
 	return y
 end
 
@@ -53,14 +53,20 @@ function DrawModel(Data, Model, ϕ; title = nothing)
 			 xlabel = "x", 
 			 ylabel = "y")
 
-	scatter!(ax, Data[1], Data[2])
-	line!(ax, xModel, yModel)
+	scatter!(ax, Data[1], Data[2]; color = :blue)
+	lines!(ax, xModel, yModel; color = :red)
 
 	return fig 
 end
 
 # ╔═╡ d2909dac-3aea-4d76-9788-606f237f41cb
+md"Initialize the parameters and draw the model."
 
+# ╔═╡ a4712b4c-6f2a-44e6-bb03-dd6f38f073ae
+ϕ = [-5, 25]
+
+# ╔═╡ 6da4fc30-182f-47d1-ae84-42b856ca4ade
+DrawModel(Data, Model, ϕ; title = "Initial Parameters")
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1719,6 +1725,8 @@ version = "4.1.0+0"
 # ╠═2df5a812-f514-4579-8716-d4d11d179e54
 # ╟─10dcbbf1-eef1-4b26-864f-8f4e0253254f
 # ╠═0512968a-6bfb-4b71-a317-a0294e09f85e
-# ╠═d2909dac-3aea-4d76-9788-606f237f41cb
+# ╟─d2909dac-3aea-4d76-9788-606f237f41cb
+# ╠═a4712b4c-6f2a-44e6-bb03-dd6f38f073ae
+# ╠═6da4fc30-182f-47d1-ae84-42b856ca4ade
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
