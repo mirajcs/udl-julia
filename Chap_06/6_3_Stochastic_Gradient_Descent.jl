@@ -86,6 +86,36 @@ begin
 	println("Your loss = $(round(loss, digits=3)), correct loss = 16.419")
 end
 
+# ╔═╡ f8dc5550-9be0-41e1-bc3d-4e9b3f9369f5
+md"Now let's plot the whole loss function."
+
+# ╔═╡ 4d7bf557-4d90-41b0-ba9c-83408bddb1fd
+function DrawLossFunction(ComputeLoss, Data, Model; ϕIters = nothing)
+	MyColorMap = cgrad(parse.(Colorant, "#" .* [
+		"2a0902", "411814", "5c2821", "763a2f", "904e3f", "aa6451",
+		"c27b64", "d7937a", "eaae91", "f8cbac", "ffe9ca", "ffffe0"
+	]))
+
+	offsets = -10:0.1:10
+	freqs = 2.5:0.1:22.5
+
+	loss = [ComputeLoss(Data[1], Data[2], Model, [ϕ₀; ϕ₁;;]) for ϕ₀ in offsets, ϕ₁ in freqs]
+
+	fig = Figure()
+	ax = (fig[1,1])
+
+	hm = heatmap!(ax, offsets, freqs, loss; colormap = MyColorMap, interpolate = true)
+
+	contour!(ax, offsets, freqs, loss; levels = 40, color = (:gray, 0.5))
+	Colorbar(fig[1,2], hm; label = "Loss")
+
+	if ϕIters !== nothing 
+		scatterlines!(ax, ϕIters[1, :], ϕIters[2, :]; color = :green, linewidth = 2, markersize = 9, strokecolor = :black, strokewidth = 1)
+	end
+
+	return fig
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1750,5 +1780,7 @@ version = "4.1.0+0"
 # ╠═101476b4-0244-45c5-89bd-4055a1d2d29f
 # ╟─55440bdf-97f8-46e9-a947-e4f714d3e216
 # ╠═5feffeac-6e98-41ee-b952-cb7790e824cb
+# ╟─f8dc5550-9be0-41e1-bc3d-4e9b3f9369f5
+# ╠═4d7bf557-4d90-41b0-ba9c-83408bddb1fd
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
