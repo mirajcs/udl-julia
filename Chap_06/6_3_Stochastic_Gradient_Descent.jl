@@ -38,6 +38,30 @@ function Model(ϕ, x)
 	return y
 end
 
+# ╔═╡ 10dcbbf1-eef1-4b26-864f-8f4e0253254f
+md"Draw Model"
+
+# ╔═╡ 0512968a-6bfb-4b71-a317-a0294e09f85e
+function DrawModel(Data, Model, ϕ; title = nothing)
+	xModel = -15:0.1:15
+	yModel = Model(ϕ, xModel)
+
+	fig = Figure()
+	ax = Axis(fig[1,1];
+			 limits = (-15, 15, -1, 1),
+			 title = title == nothing ? " " : title,
+			 xlabel = "x", 
+			 ylabel = "y")
+
+	scatter!(ax, Data[1], Data[2])
+	line!(ax, xModel, yModel)
+
+	return fig 
+end
+
+# ╔═╡ d2909dac-3aea-4d76-9788-606f237f41cb
+
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1693,5 +1717,8 @@ version = "4.1.0+0"
 # ╠═14b09c42-8c41-4d1a-bd0e-1d16a993ef2f
 # ╟─c6609200-1e7a-432d-b03d-8a0a9e0602a1
 # ╠═2df5a812-f514-4579-8716-d4d11d179e54
+# ╟─10dcbbf1-eef1-4b26-864f-8f4e0253254f
+# ╠═0512968a-6bfb-4b71-a317-a0294e09f85e
+# ╠═d2909dac-3aea-4d76-9788-606f237f41cb
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
