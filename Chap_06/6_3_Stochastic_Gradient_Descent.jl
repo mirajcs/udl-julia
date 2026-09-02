@@ -155,7 +155,14 @@ end
 dydϕ₂ = build_function(Symbolics.derivative(Model([ϕ₁,ϕ₂], x), ϕ₂), [ϕ₁,ϕ₂], x; expression = Val{false})
 
 # ╔═╡ 21053ba6-0e61-40a9-99ac-54c24328f101
+function GaborDerivϕ₂(xData, yData, ϕ)
+	resid = Model(ϕ, xData) .- yData
+	dϕ₂ = dydϕ₂.(Ref(ϕ), xData)
+	return sum(2 .* dϕ₂ .* resid)
+end
 
+# ╔═╡ 0cdb3542-68fb-4023-8b09-4fe47789e30a
+ComputeGradient(xData, yData, ϕ) = [GaborDerivϕ₁(xData, yData, ϕ), GaborDerivϕ₂(xData, yData, ϕ)]
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2141,5 +2148,6 @@ version = "4.1.0+0"
 # ╠═67ef6745-3055-46f7-8486-bda9580c1cc8
 # ╠═898029a2-5339-4850-95d0-e205eb7728c9
 # ╠═21053ba6-0e61-40a9-99ac-54c24328f101
+# ╠═0cdb3542-68fb-4023-8b09-4fe47789e30a
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
