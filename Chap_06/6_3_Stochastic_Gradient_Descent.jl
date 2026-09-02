@@ -7,6 +7,9 @@ using InteractiveUtils
 # ╔═╡ efbcb1dc-c82a-40de-8a72-3f8e8b503c71
 using CairoMakie
 
+# ╔═╡ 27979bfb-a252-4ceb-acf1-44c9414f41ea
+using Colors
+
 # ╔═╡ 43d82abc-a6ea-11f1-b547-e7412b34e8f2
 md"# Notebook 6.3 - Stochastic Gradient Descent
 
@@ -102,11 +105,13 @@ function DrawLossFunction(ComputeLoss, Data, Model; ϕIters = nothing)
 	loss = [ComputeLoss(Data[1], Data[2], Model, [ϕ₀; ϕ₁;;]) for ϕ₀ in offsets, ϕ₁ in freqs]
 
 	fig = Figure()
-	ax = (fig[1,1])
+	ax = Axis(fig[1,1],
+			 xlabel = L"\text{Offset }\phi_0",
+			 ylabel = L"\text{Frequency } \phi_1")
 
 	hm = heatmap!(ax, offsets, freqs, loss; colormap = MyColorMap, interpolate = true)
 
-	contour!(ax, offsets, freqs, loss; levels = 40, color = (:gray, 0.5))
+	contour!(ax, offsets, freqs, loss; levels = 20, color = (:gray, 0.5))
 	Colorbar(fig[1,2], hm; label = "Loss")
 
 	if ϕIters !== nothing 
@@ -116,13 +121,18 @@ function DrawLossFunction(ComputeLoss, Data, Model; ϕIters = nothing)
 	return fig
 end
 
+# ╔═╡ cb3012c3-9670-46a1-a613-d513356ab3ed
+DrawLossFunction(ComputeLoss, Data, Model)
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 
 [compat]
 CairoMakie = "~0.15.13"
+Colors = "~0.13.1"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -131,7 +141,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "273213d8845cb68d6405d362c1aa6df679e54c29"
+project_hash = "591916b5f7da543df6c2bad7ddbca3ffa98e3f8c"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1767,6 +1777,7 @@ version = "4.1.0+0"
 # ╔═╡ Cell order:
 # ╟─43d82abc-a6ea-11f1-b547-e7412b34e8f2
 # ╠═efbcb1dc-c82a-40de-8a72-3f8e8b503c71
+# ╠═27979bfb-a252-4ceb-acf1-44c9414f41ea
 # ╟─c8a6eb62-d5b7-4dd9-9d8e-a08b105d45d3
 # ╠═14b09c42-8c41-4d1a-bd0e-1d16a993ef2f
 # ╟─c6609200-1e7a-432d-b03d-8a0a9e0602a1
@@ -1782,5 +1793,6 @@ version = "4.1.0+0"
 # ╠═5feffeac-6e98-41ee-b952-cb7790e824cb
 # ╟─f8dc5550-9be0-41e1-bc3d-4e9b3f9369f5
 # ╠═4d7bf557-4d90-41b0-ba9c-83408bddb1fd
+# ╠═cb3012c3-9670-46a1-a613-d513356ab3ed
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
