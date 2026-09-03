@@ -4,6 +4,18 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    #! format: off
+    return quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+    #! format: on
+end
+
 # ╔═╡ efbcb1dc-c82a-40de-8a72-3f8e8b503c71
 using CairoMakie
 
@@ -15,6 +27,9 @@ using Symbolics
 
 # ╔═╡ 8dff6c4a-4787-44e9-b449-79e955660dac
 using Latexify
+
+# ╔═╡ 15736c2b-834f-4210-a8ba-2a84f0308922
+using PlutoUI
 
 # ╔═╡ 43d82abc-a6ea-11f1-b547-e7412b34e8f2
 md"# Notebook 6.3 - Stochastic Gradient Descent
@@ -262,18 +277,70 @@ function GradientDescentStep(ϕ, Data, Model)
 	return ϕNew
 end
 
+# ╔═╡ 0af38f65-e081-4d40-8b75-54bb0b296624
+md"Draw model"
+
+# ╔═╡ 76e4bd95-301c-4ba1-90e1-04e69deb451b
+md"""
+Start ``\phi_0``: $(@bind ϕ₀Start PlutoUI.Slider(-10:0.1:10, default=-1.5, show_value=true))
+
+Start ``\phi_1``: $(@bind ϕ₁Start PlutoUI.Slider(2.5:0.1:22.5, default=8.5, show_value=true))
+"""
+
+# ╔═╡ 5af711e6-7b47-4466-bdf5-71dfe7bc9654
+ϕStart = [ϕ₀Start, ϕ₁Start]
+
+# ╔═╡ dbd37915-d56d-45bd-a9ce-019a6c7e9191
+function FinalDraws(ϕStart)
+	# Initialize the parameters 
+	NSteps = 21 
+	#ϕStart = [-1.5, 8.5]
+
+
+	# Do gradient descent step 
+	ϕList = accumulate((ϕ, _) -> GradientDescentStep(ϕ, Data, Model), 1:NSteps; init = ϕStart) 
+
+	pushfirst!(ϕList, ϕStart)
+	ϕAll = reduce(hcat, ϕList)
+
+	lossIters = [ComputeLoss(Data[1], Data[2], Model, ϕAll[:, i]) for i in 1:4:size(ϕAll, 2)]
+
+	figs = [DrawModel(Data, Model, ϕAll[:, i]; title = "Iteration $(i), loss = $(round(loss, digits=3))") for (i,loss) in zip(1:4:size(ϕAll, 2), lossIters)]
+
+	figLoss = DrawLossFunction(ComputeLoss, Data, Model; ϕIters= ϕAll)
+
+	return figs, figLoss
+end
+
+# ╔═╡ 4571c275-5ef4-4ea1-ab16-f22e8b28efe9
+PlutoUI.ExperimentalLayout.vbox(FinalDraws(ϕStart)[1])
+
+# ╔═╡ 23e81635-0d20-4494-9b25-fac0c225b6a2
+FinalDraws(ϕStart)[2]
+
+# ╔═╡ fff11583-2ece-46b6-ab35-27496477ad22
+md"### TODO  
+Experiment with different starting points and show that it heads to a local minimum if we don't start it in the right valley."
+
+# ╔═╡ 5017f8ae-d716-4578-a48b-6f271781f414
+function GradientDescentStepFixedLearningRate(ϕ, Data, α)
+	return ϕ - α*ComputeGradient(Data[1], Data[2], ϕ)
+end 
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 CairoMakie = "~0.15.13"
 Colors = "~0.13.1"
 Latexify = "~0.16.12"
+PlutoUI = "~0.7.83"
 Symbolics = "~7.39.0"
 """
 
@@ -283,7 +350,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "a0595bb92b95aa45f57d76b73ec34628d3ad555f"
+project_hash = "68a143d204fc7ddec243bd4c14bb4e116074028c"
 
 [[deps.ADTypes]]
 deps = ["PrecompileTools"]
@@ -960,6 +1027,24 @@ git-tree-sha1 = "31bb6c92405c084617facc1d7ed9eb6c402d061e"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.30"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "179267cfa5e712760cd43dcae385d7ea90cc25a4"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.5"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "d1a86724f81bcd184a38fd284ce183ec067d71a0"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "1.0.0"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "0ee181ec08df7d7c911901ea38baf16f755114dc"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "1.0.0"
+
 [[deps.ImageAxes]]
 deps = ["AxisArrays", "ImageBase", "ImageCore", "Reexport", "SimpleTraits"]
 git-tree-sha1 = "e12629406c6c4442539436581041d372d69c55ba"
@@ -1281,6 +1366,11 @@ version = "1.0.1"
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 version = "1.11.0"
 
+[[deps.MIMEs]]
+git-tree-sha1 = "c64d943587f7187e751162b3b84445bbbd79f691"
+uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
+version = "1.1.0"
+
 [[deps.MacroTools]]
 git-tree-sha1 = "1e0228a030642014fe5cfe68c2c0a818f9e3f522"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
@@ -1519,6 +1609,12 @@ deps = ["ColorSchemes", "Colors", "Dates", "PrecompileTools", "Printf", "Random"
 git-tree-sha1 = "26ca162858917496748aad52bb5d3be4d26a228a"
 uuid = "995b91a9-d308-5afd-9ec6-746e21dbc043"
 version = "1.4.4"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Downloads", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
+git-tree-sha1 = "e189d0623e7ce9c37389bac17e80aac3b0302e75"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.83"
 
 [[deps.PolygonOps]]
 git-tree-sha1 = "77b3d3605fc1cd0b42d95eba87dfcd2bf67d5ff6"
@@ -1999,10 +2095,20 @@ git-tree-sha1 = "0c45878dcfdcfa8480052b6ab162cdd138781742"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.11.3"
 
+[[deps.Tricks]]
+git-tree-sha1 = "311349fd1c93a31f783f977a71e8b062a57d4101"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.13"
+
 [[deps.TriplotBase]]
 git-tree-sha1 = "4d4ed7f294cda19382ff7de4c137d24d16adc89b"
 uuid = "981d1d27-644d-49a2-9326-4793e63143c3"
 version = "0.1.0"
+
+[[deps.URIs]]
+git-tree-sha1 = "908fec9df6c5de98548ead82a468c95ccf6cd263"
+uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
+version = "1.7.0"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
@@ -2224,6 +2330,7 @@ version = "4.1.0+0"
 # ╠═27979bfb-a252-4ceb-acf1-44c9414f41ea
 # ╠═9bafc698-164b-4bd8-a0d3-25952a550b52
 # ╠═8dff6c4a-4787-44e9-b449-79e955660dac
+# ╠═15736c2b-834f-4210-a8ba-2a84f0308922
 # ╟─c8a6eb62-d5b7-4dd9-9d8e-a08b105d45d3
 # ╠═14b09c42-8c41-4d1a-bd0e-1d16a993ef2f
 # ╟─c6609200-1e7a-432d-b03d-8a0a9e0602a1
@@ -2256,5 +2363,13 @@ version = "4.1.0+0"
 # ╠═a421a5e5-07f7-4d87-8ad0-87046a37e01c
 # ╠═d3e80371-ce6f-4922-a30b-19f17af05ce9
 # ╠═ac97f621-36f5-4659-bb48-a77ad7fb17be
+# ╟─0af38f65-e081-4d40-8b75-54bb0b296624
+# ╟─76e4bd95-301c-4ba1-90e1-04e69deb451b
+# ╠═5af711e6-7b47-4466-bdf5-71dfe7bc9654
+# ╠═dbd37915-d56d-45bd-a9ce-019a6c7e9191
+# ╠═4571c275-5ef4-4ea1-ab16-f22e8b28efe9
+# ╠═23e81635-0d20-4494-9b25-fac0c225b6a2
+# ╟─fff11583-2ece-46b6-ab35-27496477ad22
+# ╠═5017f8ae-d716-4578-a48b-6f271781f414
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
