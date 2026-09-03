@@ -252,6 +252,16 @@ function LineSearch(Data, Model, ϕ, Gradient; Thresh=1e-4, MaxDist = 0.1,  MaxI
 	return (b + c)/ 2
 end
 
+# ╔═╡ ac97f621-36f5-4659-bb48-a77ad7fb17be
+function GradientDescentStep(ϕ, Data, Model)
+	# step 1: compute the gradient 
+	gradient = ComputeGradient(Data[1], Data[2], ϕ)
+	# step 2: update the parameters -- note we want to search in the negative (downhill direction)
+	α = LineSearch(Data, Model, ϕ, gradient*(-1), MaxDist=2.0)
+	ϕNew = ϕ - α*gradient
+	return ϕNew
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -2245,5 +2255,6 @@ version = "4.1.0+0"
 # ╟─5de2511d-2af9-4ff9-b238-91d726c2dfea
 # ╠═a421a5e5-07f7-4d87-8ad0-87046a37e01c
 # ╠═d3e80371-ce6f-4922-a30b-19f17af05ce9
+# ╠═ac97f621-36f5-4659-bb48-a77ad7fb17be
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
