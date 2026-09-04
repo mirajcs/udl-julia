@@ -323,9 +323,40 @@ md"### TODO
 Experiment with different starting points and show that it heads to a local minimum if we don't start it in the right valley."
 
 # ╔═╡ 5017f8ae-d716-4578-a48b-6f271781f414
-function GradientDescentStepFixedLearningRate(ϕ, Data, α)
+function GradientDescentStepFixedLearningRate(ϕ, Data; α= 0.2)
 	return ϕ - α*ComputeGradient(Data[1], Data[2], ϕ)
 end 
+
+# ╔═╡ db6062c3-fcbc-4a46-ab7d-a1a9f0248e2b
+md"Example"
+
+# ╔═╡ 7db272a9-57f9-4258-b591-691723454551
+function FinalDraws2(ϕStart)
+	# Initialize the parameters 
+	NSteps = 21 
+	#ϕStart = [-1.5, 8.5]
+
+
+	# Do gradient descent step 
+	ϕList = accumulate((ϕ, _) -> GradientDescentStepFixedLearningRate(ϕ, Data), 1:NSteps; init = ϕStart) 
+
+	pushfirst!(ϕList, ϕStart)
+	ϕAll = reduce(hcat, ϕList)
+
+	lossIters = [ComputeLoss(Data[1], Data[2], Model, ϕAll[:, i]) for i in 1:4:size(ϕAll, 2)]
+
+	figs = [DrawModel(Data, Model, ϕAll[:, i]; title = "Iteration $(i), loss = $(round(loss, digits=3))") for (i,loss) in zip(1:4:size(ϕAll, 2), lossIters)]
+
+	figLoss = DrawLossFunction(ComputeLoss, Data, Model; ϕIters= ϕAll)
+
+	return figs, figLoss
+end
+
+# ╔═╡ bb53fba5-fac2-4ad1-8f37-c045b382a3c7
+PlutoUI.ExperimentalLayout.vbox(FinalDraws2(ϕStart)[1])
+
+# ╔═╡ 127f7e93-ed6a-42f7-b2a9-86400ec145e7
+FinalDraws2(ϕStart)[2]
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2371,5 +2402,9 @@ version = "4.1.0+0"
 # ╠═23e81635-0d20-4494-9b25-fac0c225b6a2
 # ╟─fff11583-2ece-46b6-ab35-27496477ad22
 # ╠═5017f8ae-d716-4578-a48b-6f271781f414
+# ╟─db6062c3-fcbc-4a46-ab7d-a1a9f0248e2b
+# ╠═7db272a9-57f9-4258-b591-691723454551
+# ╠═bb53fba5-fac2-4ad1-8f37-c045b382a3c7
+# ╠═127f7e93-ed6a-42f7-b2a9-86400ec145e7
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
