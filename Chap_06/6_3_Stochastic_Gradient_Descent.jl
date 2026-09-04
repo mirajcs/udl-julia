@@ -31,6 +31,9 @@ using Latexify
 # ╔═╡ 15736c2b-834f-4210-a8ba-2a84f0308922
 using PlutoUI
 
+# ╔═╡ 4edadf60-1a51-4d7b-9961-807c788a90c2
+using Random
+
 # ╔═╡ 43d82abc-a6ea-11f1-b547-e7412b34e8f2
 md"# Notebook 6.3 - Stochastic Gradient Descent
 
@@ -322,8 +325,13 @@ FinalDraws(ϕStart)[2]
 md"### TODO  
 Experiment with different starting points and show that it heads to a local minimum if we don't start it in the right valley."
 
+# ╔═╡ 4b7ad772-cb1d-4987-8146-6b5f171066f2
+md"""
+Start ``\alpha``: $(@bind α PlutoUI.Slider(0:0.1:1, default=0.2, show_value=true))
+"""
+
 # ╔═╡ 5017f8ae-d716-4578-a48b-6f271781f414
-function GradientDescentStepFixedLearningRate(ϕ, Data; α= 0.2)
+function GradientDescentStepFixedLearningRate(ϕ, Data, α)
 	return ϕ - α*ComputeGradient(Data[1], Data[2], ϕ)
 end 
 
@@ -338,7 +346,7 @@ function FinalDraws2(ϕStart)
 
 
 	# Do gradient descent step 
-	ϕList = accumulate((ϕ, _) -> GradientDescentStepFixedLearningRate(ϕ, Data), 1:NSteps; init = ϕStart) 
+	ϕList = accumulate((ϕ, _) -> GradientDescentStepFixedLearningRate(ϕ, Data, α), 1:NSteps; init = ϕStart) 
 
 	pushfirst!(ϕList, ϕStart)
 	ϕAll = reduce(hcat, ϕList)
@@ -358,6 +366,37 @@ PlutoUI.ExperimentalLayout.vbox(FinalDraws2(ϕStart)[1])
 # ╔═╡ 127f7e93-ed6a-42f7-b2a9-86400ec145e7
 FinalDraws2(ϕStart)[2]
 
+# ╔═╡ a72bc8a0-3f32-4872-b90e-eccef1a44254
+md"### TODO
+
+Experiment with the learning rate, α.\
+What happens if you set it too large?\
+What happens if you set it too small? "
+
+# ╔═╡ 697462da-c951-4de6-b630-69d6c2c87b4d
+function StochasticGradientDescentStep(ϕ, Data, α¹, BatchSize)
+	
+	NData = size(Data[2])[1]
+	permutation = randperm(NData)
+
+	BatchIndices = permutation[1:BatchSize]
+
+	# Extract the batch data 
+	xBatchData = Data[1][BatchIndices]
+	yBatchData = Data[2][BatchIndices]
+
+	# compute the gradient using only the batch data 
+	gradient¹ = ComputeGradient(xBatchData, yBatchData, ϕ)
+
+	return ϕ - α¹*gradient¹ 
+end
+
+# ╔═╡ 9c242ac2-b054-416f-9ac4-0a25b85660a2
+md"Set the random generator so you always get same numbers (disable if you don't want this)"
+
+# ╔═╡ 5add16a8-d625-4104-8d7a-7db59e636b9d
+seed!(1)
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -365,6 +404,7 @@ CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
@@ -381,7 +421,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "68a143d204fc7ddec243bd4c14bb4e116074028c"
+project_hash = "9e0953a896b6737cfaf7b10d06c496b5d3638c52"
 
 [[deps.ADTypes]]
 deps = ["PrecompileTools"]
@@ -2362,6 +2402,7 @@ version = "4.1.0+0"
 # ╠═9bafc698-164b-4bd8-a0d3-25952a550b52
 # ╠═8dff6c4a-4787-44e9-b449-79e955660dac
 # ╠═15736c2b-834f-4210-a8ba-2a84f0308922
+# ╠═4edadf60-1a51-4d7b-9961-807c788a90c2
 # ╟─c8a6eb62-d5b7-4dd9-9d8e-a08b105d45d3
 # ╠═14b09c42-8c41-4d1a-bd0e-1d16a993ef2f
 # ╟─c6609200-1e7a-432d-b03d-8a0a9e0602a1
@@ -2401,10 +2442,15 @@ version = "4.1.0+0"
 # ╠═4571c275-5ef4-4ea1-ab16-f22e8b28efe9
 # ╠═23e81635-0d20-4494-9b25-fac0c225b6a2
 # ╟─fff11583-2ece-46b6-ab35-27496477ad22
+# ╠═4b7ad772-cb1d-4987-8146-6b5f171066f2
 # ╠═5017f8ae-d716-4578-a48b-6f271781f414
 # ╟─db6062c3-fcbc-4a46-ab7d-a1a9f0248e2b
 # ╠═7db272a9-57f9-4258-b591-691723454551
 # ╠═bb53fba5-fac2-4ad1-8f37-c045b382a3c7
 # ╠═127f7e93-ed6a-42f7-b2a9-86400ec145e7
+# ╟─a72bc8a0-3f32-4872-b90e-eccef1a44254
+# ╠═697462da-c951-4de6-b630-69d6c2c87b4d
+# ╟─9c242ac2-b054-416f-9ac4-0a25b85660a2
+# ╠═5add16a8-d625-4104-8d7a-7db59e636b9d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
