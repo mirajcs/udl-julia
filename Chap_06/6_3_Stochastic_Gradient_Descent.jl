@@ -429,6 +429,11 @@ PlutoUI.ExperimentalLayout.vbox(FinalDraw3(ϕStart)[1])
 # ╔═╡ 012189a5-c303-4382-b530-d2396d955fd0
 FinalDraw3(ϕStart)[2]
 
+# ╔═╡ 1a1b6221-9671-403f-a66f-573b5934c046
+md"### TODO  
+
+Experiment with different learning rates, starting points, batch sizes, number of steps.  Get a feel for this."
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -2487,5 +2492,6 @@ version = "4.1.0+0"
 # ╠═5add16a8-d625-4104-8d7a-7db59e636b9d
 # ╠═42979d80-6489-4e4b-b2a0-d95e035ed0dc
 # ╠═012189a5-c303-4382-b530-d2396d955fd0
+# ╟─1a1b6221-9671-403f-a66f-573b5934c046
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
