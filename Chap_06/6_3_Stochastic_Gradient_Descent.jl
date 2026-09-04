@@ -394,8 +394,40 @@ end
 # ╔═╡ 9c242ac2-b054-416f-9ac4-0a25b85660a2
 md"Set the random generator so you always get same numbers (disable if you don't want this)"
 
+# ╔═╡ 7f13948d-8953-4b7a-b073-842d1b1c87f7
+md"""
+Start Batch Size: $(@bind BatchSize PlutoUI.Slider(1:1:20, default=5, show_value=true))
+"""
+
 # ╔═╡ 5add16a8-d625-4104-8d7a-7db59e636b9d
-seed!(1)
+function FinalDraw3(ϕStart)
+	Random.seed!(1)
+
+	# Initialize the parameters 
+	NSteps = 41 
+	#ϕStart = [-1.5, 8.5]
+
+
+	# Do gradient descent step 
+	ϕList = accumulate((ϕ, _) -> StochasticGradientDescentStep(ϕ, Data, α, BatchSize), 1:NSteps; init = ϕStart) 
+
+	pushfirst!(ϕList, ϕStart)
+	ϕAll = reduce(hcat, ϕList)
+
+	lossIters = [ComputeLoss(Data[1], Data[2], Model, ϕAll[:, i]) for i in 1:4:size(ϕAll, 2)]
+
+	figs = [DrawModel(Data, Model, ϕAll[:, i]; title = "Iteration $(i), loss = $(round(loss, digits=3))") for (i,loss) in zip(1:4:size(ϕAll, 2), lossIters)]
+
+	figLoss = DrawLossFunction(ComputeLoss, Data, Model; ϕIters= ϕAll)
+
+	return figs, figLoss
+end
+
+# ╔═╡ 42979d80-6489-4e4b-b2a0-d95e035ed0dc
+PlutoUI.ExperimentalLayout.vbox(FinalDraw3(ϕStart)[1])
+
+# ╔═╡ 012189a5-c303-4382-b530-d2396d955fd0
+FinalDraw3(ϕStart)[2]
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2442,7 +2474,7 @@ version = "4.1.0+0"
 # ╠═4571c275-5ef4-4ea1-ab16-f22e8b28efe9
 # ╠═23e81635-0d20-4494-9b25-fac0c225b6a2
 # ╟─fff11583-2ece-46b6-ab35-27496477ad22
-# ╠═4b7ad772-cb1d-4987-8146-6b5f171066f2
+# ╟─4b7ad772-cb1d-4987-8146-6b5f171066f2
 # ╠═5017f8ae-d716-4578-a48b-6f271781f414
 # ╟─db6062c3-fcbc-4a46-ab7d-a1a9f0248e2b
 # ╠═7db272a9-57f9-4258-b591-691723454551
@@ -2451,6 +2483,9 @@ version = "4.1.0+0"
 # ╟─a72bc8a0-3f32-4872-b90e-eccef1a44254
 # ╠═697462da-c951-4de6-b630-69d6c2c87b4d
 # ╟─9c242ac2-b054-416f-9ac4-0a25b85660a2
+# ╟─7f13948d-8953-4b7a-b073-842d1b1c87f7
 # ╠═5add16a8-d625-4104-8d7a-7db59e636b9d
+# ╠═42979d80-6489-4e4b-b2a0-d95e035ed0dc
+# ╠═012189a5-c303-4382-b530-d2396d955fd0
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
