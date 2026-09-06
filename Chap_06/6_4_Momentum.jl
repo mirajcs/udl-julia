@@ -12,6 +12,32 @@ md"# Notebook 6.4 - Momentum
 
 This notebook investigate the use of momentum as illustrated in figure 6.7 from the book. "
 
+# ╔═╡ d8267d0a-daf8-481d-8a9c-69565a1d8c3b
+md"Let's create out training data of 30 pairs $\{x_i, y_i\}$. We'll try to fit the Gabor model to these data. "
+
+# ╔═╡ 3ecfe1d7-cc21-45b4-97a5-2f8f5debced1
+Data = [[-1.920e+00,-1.422e+01,1.490e+00,-1.940e+00,-2.389e+00,-5.090e+00,
+                 -8.861e+00,3.578e+00,-6.010e+00,-6.995e+00,3.634e+00,8.743e-01,
+                 -1.096e+01,4.073e-01,-9.467e+00,8.560e+00,1.062e+01,-1.729e-01,
+                  1.040e+01,-1.261e+01,1.574e-01,-1.304e+01,-2.156e+00,-1.210e+01,
+                 -1.119e+01,2.902e+00,-8.220e+00,-1.179e+01,-8.391e+00,-4.505e+00],
+                  [-1.051e+00,-2.482e-02,8.896e-01,-4.943e-01,-9.371e-01,4.306e-01,
+                  9.577e-03,-7.944e-02 ,1.624e-01,-2.682e-01,-3.129e-01,8.303e-01,
+                  -2.365e-02,5.098e-01,-2.777e-01,3.367e-01,1.927e-01,-2.222e-01,
+                  6.352e-02,6.888e-03,3.224e-02,1.091e-02,-5.706e-01,-5.258e-02,
+                  -3.666e-02,1.709e-01,-4.805e-02,2.008e-01,-1.904e-01,5.952e-01]]
+
+# ╔═╡ 5b55be2c-c849-4ba3-b8ce-dd7ddbe26103
+md"Define the model"
+
+# ╔═╡ 64d5aacd-6f1b-472f-86e2-1fc4e3cc570d
+function Model(ϕ, x)
+	SinComponent = sin.(ϕ[1] .+ 0.06*ϕ[2]*x)
+	GaussComponent = exp.(-(ϕ[1] .+ 0.06*ϕ[2]*x).^2 / 32.0)
+	y = SinComponent .* GaussComponent
+	return y
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1663,5 +1689,9 @@ version = "4.1.0+0"
 # ╔═╡ Cell order:
 # ╟─f1ec4884-aa07-11f1-af96-4355e9c12031
 # ╠═99378a5a-8e30-467c-a577-ba757ea50905
+# ╟─d8267d0a-daf8-481d-8a9c-69565a1d8c3b
+# ╠═3ecfe1d7-cc21-45b4-97a5-2f8f5debced1
+# ╟─5b55be2c-c849-4ba3-b8ce-dd7ddbe26103
+# ╠═64d5aacd-6f1b-472f-86e2-1fc4e3cc570d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
