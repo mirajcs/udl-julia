@@ -59,6 +59,15 @@ function DrawModel(Data, Model, ϕ; title = nothing)
 	return fig 
 end
 
+# ╔═╡ b1c74f9d-215b-47e1-83f0-e08ebac56f60
+md"Initialize the parameters and draw the model"
+
+# ╔═╡ adeb6893-0d06-49c3-81e3-e731eb209b72
+ϕ = [-5, 25]
+
+# ╔═╡ 19301ec1-3274-415d-aa54-fa637eca85ac
+DrawModel(Data, Model, ϕ; title = "Initial Parameters")
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1716,5 +1725,8 @@ version = "4.1.0+0"
 # ╠═64d5aacd-6f1b-472f-86e2-1fc4e3cc570d
 # ╟─47ef824a-8a00-4f2b-ac6d-d439b0fd7b5c
 # ╠═fc30ea0f-9ff1-4cce-9432-02c14191e13c
+# ╟─b1c74f9d-215b-47e1-83f0-e08ebac56f60
+# ╠═adeb6893-0d06-49c3-81e3-e731eb209b72
+# ╠═19301ec1-3274-415d-aa54-fa637eca85ac
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
