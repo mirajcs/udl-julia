@@ -77,7 +77,36 @@ function ComputeLoss(xData, yData, Model, ϕ)
 end 
 
 # ╔═╡ 337a31e2-26e9-44f4-89f0-66a1603e5523
+md"Now let's plot the loss function"
 
+# ╔═╡ 43bfb633-e16f-42a6-9795-6584ffda1fe0
+function DrawLossFunction(ComputeLoss, Data, Model; ϕIters = nothing)
+	MyColorMap = cgrad(parse.(Colorant, "#" .* [
+		"2a0902", "411814", "5c2821", "763a2f", "904e3f", "aa6451",
+		"c27b64", "d7937a", "eaae91", "f8cbac", "ffe9ca", "ffffe0"
+	]))
+
+	offsets = -10:0.1:10
+	freqs = 2.5:0.1:22.5
+
+	loss = [ComputeLoss(Data[1], Data[2], Model, [ϕ₀; ϕ₁;;]) for ϕ₀ in offsets, ϕ₁ in freqs]
+
+	fig = Figure()
+	ax = Axis(fig[1,1],
+			 xlabel = L"\text{Offset }\phi_0",
+			 ylabel = L"\text{Frequency } \phi_1")
+
+	hm = heatmap!(ax, offsets, freqs, loss; colormap = MyColorMap, interpolate = true)
+
+	contour!(ax, offsets, freqs, loss; levels = 20, color = (:gray, 0.5))
+	Colorbar(fig[1,2], hm; label = "Loss")
+
+	if ϕIters !== nothing 
+		scatterlines!(ax, ϕIters[1, :], ϕIters[2, :]; color = :green, linewidth = 2, markersize = 9, strokecolor = :black, strokewidth = 1)
+	end
+
+	return fig
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1741,6 +1770,7 @@ version = "4.1.0+0"
 # ╠═19301ec1-3274-415d-aa54-fa637eca85ac
 # ╟─c6b324c8-f608-475d-9dca-ddc9647d40f9
 # ╠═bfb629c2-236d-460e-951a-f2dad076ffba
-# ╠═337a31e2-26e9-44f4-89f0-66a1603e5523
+# ╟─337a31e2-26e9-44f4-89f0-66a1603e5523
+# ╠═43bfb633-e16f-42a6-9795-6584ffda1fe0
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
