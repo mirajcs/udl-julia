@@ -4,6 +4,18 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    #! format: off
+    return quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+    #! format: on
+end
+
 # ╔═╡ 99378a5a-8e30-467c-a577-ba757ea50905
 using CairoMakie
 
@@ -15,6 +27,12 @@ using Symbolics
 
 # ╔═╡ 4fbc4c28-3be6-4591-8761-78b17bad51a7
 using Latexify
+
+# ╔═╡ 31017349-6d04-46bb-b666-abecbd355e62
+using PlutoUI
+
+# ╔═╡ c777514a-7b63-4336-933a-69ae9e13edb0
+using Random
 
 # ╔═╡ f1ec4884-aa07-11f1-af96-4355e9c12031
 md"# Notebook 6.4 - Momentum
@@ -158,18 +176,119 @@ end
 # ╔═╡ 7434aa81-f15c-4c75-a638-043c4b7d1b09
 ComputeGradient(xData, yData, ϕ) = [GaborDerivϕ₁(xData, yData, ϕ), GaborDerivϕ₂(xData, yData, ϕ)]
 
+# ╔═╡ 94c629fa-eebb-4fcd-bb9d-f0f814fa94f5
+md"""
+Batch Size: $(@bind BatchSize PlutoUI.Slider(1:1:20, default=5, show_value=true))
+"""
+
+# ╔═╡ d80d5d6e-eaea-483a-a899-4f6c7e88b353
+md"""
+``\alpha``: $(@bind α PlutoUI.Slider(0:0.1:1, default=0.6, show_value=true))
+"""
+
+# ╔═╡ e3799946-c4a3-4d1c-9f46-1f454dc886a8
+md"""
+Start ``\phi_0``: $(@bind ϕ₀Start PlutoUI.Slider(-10:0.1:10, default=-1.5, show_value=true))
+
+Start ``\phi_1``: $(@bind ϕ₁Start PlutoUI.Slider(2.5:0.1:22.5, default=6.5, show_value=true))
+"""
+
+# ╔═╡ 00a8bc58-7bac-4e2b-aa6a-8f4c6eb5615f
+ϕStart = [ϕ₀Start, ϕ₁Start]
+
+# ╔═╡ a4be56a6-cb62-4512-94e8-8674bada5160
+function FinalDraws(ϕStart)
+	Random.seed!(4)
+	# Initialize the parameters 
+	NSteps = 81 
+	#ϕStart = [-1.5, 8.5]
+
+
+	# Do gradient descent step 
+	ϕList = accumulate(1:NSteps; init = ϕStart) do ϕ, _
+		batchIndex = randperm(length(Data[1]))[1:BatchSize]
+		gradient = ComputeGradient(Data[1][batchIndex], Data[2][batchIndex], ϕ)
+		ϕ .- α.* gradient
+	end
+
+	pushfirst!(ϕList, ϕStart)
+	ϕAll = reduce(hcat, ϕList)
+
+	iters = [1, size(ϕAll, 2)]
+	lossIters = [ComputeLoss(Data[1], Data[2], Model, ϕAll[:, i]) for i in iters]
+
+	figs = [DrawModel(Data, Model, ϕAll[:, i]; title = "Iteration $(i), loss = $(round(loss, digits=3))") for (i,loss) in zip(iters, lossIters)]
+
+	figLoss = DrawLossFunction(ComputeLoss, Data, Model; ϕIters= ϕAll)
+
+	return figs, figLoss
+end
+
+# ╔═╡ 2290932c-c1ac-4b15-8ba9-26318aef6d88
+PlutoUI.ExperimentalLayout.vbox(FinalDraws(ϕStart)[1])
+
+# ╔═╡ b2c73cfb-a377-469a-acfa-a485f21e95b0
+FinalDraws(ϕStart)[2]
+
+# ╔═╡ 91253d45-c9e7-4eee-8926-f6540808df39
+md"""
+``\beta``: $(@bind β PlutoUI.Slider(0:0.1:1.0, default=0.6, show_value=true )) 
+"""
+
+# ╔═╡ 83c21021-1ff8-4289-a716-273e01a020fa
+function FinalDraw2(ϕStart) 
+	Random.seed!(4)
+	NSteps = 81
+
+	# Do a Nestrov momentum step, carring (ϕ, momentum) through the iterations
+	steps = accumulate(1:NSteps; init = (ϕStart, zeros(2))) do (ϕ, momentum), _
+		batchIndex = randperm(length(Data[1]))[1:BatchSize]
+
+		# Look ahead along the momentum direction and take gradient there. 
+		ϕAhead = ϕ .- β .* momentum 
+		gradient = ComputeGradient(Data[1][batchIndex], Data[2][batchIndex], ϕAhead)
+
+		# update the momentum, then the parameters 
+		momentum = β .* momentum .+ (1 - β) .* gradient
+		(ϕ .- α .* momentum, momentum)
+	end
+
+	ϕList = first.(steps)
+	pushfirst!(ϕList, ϕStart)
+	ϕAll = reduce(hcat, ϕList)
+
+	iters = [1, size(ϕAll, 2)]
+	lossIters = [ComputeLoss(Data[1], Data[2], Model, ϕAll[:, i]) for i in iters]
+
+	figs = [DrawModel(Data, Model, ϕAll[:, i]; 
+					 title = "Iteration $(i), loss = $(round(loss, digits = 3))") for (i, loss) in zip(iters, lossIters)]
+
+	figLoss = DrawLossFunction(ComputeLoss, Data, Model; ϕIters=ϕAll)
+
+	return figs, figLoss
+end
+
+# ╔═╡ aa38ef7d-da3c-4281-9de6-c375c53eb703
+PlutoUI.ExperimentalLayout.vbox(FinalDraw2(ϕStart)[1])
+
+# ╔═╡ 1a9ca9ab-5c8f-4786-937a-923252f94fec
+FinalDraw2(ϕStart)[2]
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 CairoMakie = "~0.15.13"
 Colors = "~0.13.1"
 Latexify = "~0.16.12"
+PlutoUI = "~0.7.83"
 Symbolics = "~7.39.0"
 """
 
@@ -179,7 +298,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "a0595bb92b95aa45f57d76b73ec34628d3ad555f"
+project_hash = "9e0953a896b6737cfaf7b10d06c496b5d3638c52"
 
 [[deps.ADTypes]]
 deps = ["PrecompileTools"]
@@ -856,6 +975,24 @@ git-tree-sha1 = "31bb6c92405c084617facc1d7ed9eb6c402d061e"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.30"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "179267cfa5e712760cd43dcae385d7ea90cc25a4"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.5"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "d1a86724f81bcd184a38fd284ce183ec067d71a0"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "1.0.0"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "0ee181ec08df7d7c911901ea38baf16f755114dc"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "1.0.0"
+
 [[deps.ImageAxes]]
 deps = ["AxisArrays", "ImageBase", "ImageCore", "Reexport", "SimpleTraits"]
 git-tree-sha1 = "e12629406c6c4442539436581041d372d69c55ba"
@@ -1177,6 +1314,11 @@ version = "1.0.1"
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 version = "1.11.0"
 
+[[deps.MIMEs]]
+git-tree-sha1 = "c64d943587f7187e751162b3b84445bbbd79f691"
+uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
+version = "1.1.0"
+
 [[deps.MacroTools]]
 git-tree-sha1 = "1e0228a030642014fe5cfe68c2c0a818f9e3f522"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
@@ -1415,6 +1557,12 @@ deps = ["ColorSchemes", "Colors", "Dates", "PrecompileTools", "Printf", "Random"
 git-tree-sha1 = "26ca162858917496748aad52bb5d3be4d26a228a"
 uuid = "995b91a9-d308-5afd-9ec6-746e21dbc043"
 version = "1.4.4"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Downloads", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
+git-tree-sha1 = "e189d0623e7ce9c37389bac17e80aac3b0302e75"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.83"
 
 [[deps.PolygonOps]]
 git-tree-sha1 = "77b3d3605fc1cd0b42d95eba87dfcd2bf67d5ff6"
@@ -1895,10 +2043,20 @@ git-tree-sha1 = "0c45878dcfdcfa8480052b6ab162cdd138781742"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.11.3"
 
+[[deps.Tricks]]
+git-tree-sha1 = "311349fd1c93a31f783f977a71e8b062a57d4101"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.13"
+
 [[deps.TriplotBase]]
 git-tree-sha1 = "4d4ed7f294cda19382ff7de4c137d24d16adc89b"
 uuid = "981d1d27-644d-49a2-9326-4793e63143c3"
 version = "0.1.0"
+
+[[deps.URIs]]
+git-tree-sha1 = "908fec9df6c5de98548ead82a468c95ccf6cd263"
+uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
+version = "1.7.0"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
@@ -2120,6 +2278,8 @@ version = "4.1.0+0"
 # ╠═07bf214b-7373-4764-9d0d-ef2238b6c117
 # ╠═5380dce2-5f5d-41bf-8d37-5993e062dcaf
 # ╠═4fbc4c28-3be6-4591-8761-78b17bad51a7
+# ╠═31017349-6d04-46bb-b666-abecbd355e62
+# ╠═c777514a-7b63-4336-933a-69ae9e13edb0
 # ╟─d8267d0a-daf8-481d-8a9c-69565a1d8c3b
 # ╠═3ecfe1d7-cc21-45b4-97a5-2f8f5debced1
 # ╟─5b55be2c-c849-4ba3-b8ce-dd7ddbe26103
@@ -2141,5 +2301,16 @@ version = "4.1.0+0"
 # ╠═3a1b86c1-9bf0-454e-8b31-a4961db20157
 # ╠═5d3ab86a-b78b-44a6-b0b5-0456c6937717
 # ╠═7434aa81-f15c-4c75-a638-043c4b7d1b09
+# ╟─94c629fa-eebb-4fcd-bb9d-f0f814fa94f5
+# ╟─d80d5d6e-eaea-483a-a899-4f6c7e88b353
+# ╟─e3799946-c4a3-4d1c-9f46-1f454dc886a8
+# ╠═00a8bc58-7bac-4e2b-aa6a-8f4c6eb5615f
+# ╠═a4be56a6-cb62-4512-94e8-8674bada5160
+# ╠═2290932c-c1ac-4b15-8ba9-26318aef6d88
+# ╠═b2c73cfb-a377-469a-acfa-a485f21e95b0
+# ╟─91253d45-c9e7-4eee-8926-f6540808df39
+# ╠═83c21021-1ff8-4289-a716-273e01a020fa
+# ╠═aa38ef7d-da3c-4281-9de6-c375c53eb703
+# ╠═1a9ca9ab-5c8f-4786-937a-923252f94fec
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
