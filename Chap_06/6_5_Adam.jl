@@ -34,9 +34,25 @@ dydϕ₀ = build_function(Symbolics.derivative(Loss(ϕ₀, ϕ₁), ϕ₀), ϕ₀
 # ╔═╡ a1f8d27b-fecb-40aa-877d-1e0a4221d043
 dydϕ₁ = build_function(Symbolics.derivative(Loss(ϕ₀, ϕ₁), ϕ₁), ϕ₀, ϕ₁; expression = Val{false})
 
+# ╔═╡ fc23d87b-f650-4266-be9f-e16a8741441d
+md"Compute the gradient of this function"
+
 # ╔═╡ 9dcf254d-49c6-402f-b796-c5cfde5a5ee7
 function GetLossGradient(ϕ₀, ϕ₁)
 	ϕ = [dydϕ₀(ϕ₀, ϕ₁), dydϕ₁(ϕ₀, ϕ₁)]
+end
+
+# ╔═╡ c443c304-c06f-4641-baed-6c6193ca456c
+md"Compute the loss function at a range of values of $\phi_0$ and $\phi_1$ for plotting"
+
+# ╔═╡ ab0ebd08-024b-4aa7-8f36-a353948f8124
+function GetLossFunctionForPlot()
+	GridValues = -1.0:0.01:1.0
+	ϕ₀mesh = [ϕ₀ for ϕ₀ in GridValues, _ in GridValues]
+	ϕ₁mesh = [ϕ₁ for _ in GridValues, ϕ₁ in GridValues]
+
+	LossFunction = [Loss(ϕ₀, ϕ₁) for ϕ₀ in GridValues, ϕ₁ in GridValues]
+	return LossFunction, ϕ₀mesh, ϕ₁mesh
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -751,6 +767,9 @@ version = "5.15.0+0"
 # ╠═6457173d-d597-46c1-b2b2-fde403120fe9
 # ╠═c7e61b04-6031-4acf-b09b-67c186886aaa
 # ╠═a1f8d27b-fecb-40aa-877d-1e0a4221d043
+# ╟─fc23d87b-f650-4266-be9f-e16a8741441d
 # ╠═9dcf254d-49c6-402f-b796-c5cfde5a5ee7
+# ╟─c443c304-c06f-4641-baed-6c6193ca456c
+# ╠═ab0ebd08-024b-4aa7-8f36-a353948f8124
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
