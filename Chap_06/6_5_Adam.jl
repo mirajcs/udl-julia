@@ -54,11 +54,8 @@ md"Compute the loss function at a range of values of $\phi_0$ and $\phi_1$ for p
 # ╔═╡ ab0ebd08-024b-4aa7-8f36-a353948f8124
 function GetLossFunctionForPlot()
 	GridValues = -1.0:0.01:1.0
-	ϕ₀mesh = [ϕ₀ for ϕ₀ in GridValues, _ in GridValues]
-	ϕ₁mesh = [ϕ₁ for _ in GridValues, ϕ₁ in GridValues]
-
 	LossFunction = [Loss(ϕ₀, ϕ₁) for ϕ₀ in GridValues, ϕ₁ in GridValues]
-	return LossFunction, ϕ₀mesh, ϕ₁mesh
+	return LossFunction, GridValues
 end
 
 # ╔═╡ 46f49f25-61e3-46a7-b4a9-1a3896b1e14e
@@ -71,16 +68,16 @@ MyColorMap() = cgrad(parse.(Colorant, "#" .* [
 md"Plotting function"
 
 # ╔═╡ 5bcf3b8e-da3e-4f0f-bfe0-454d3efecbf9
-function DrawFunction(ϕ₀mesh, ϕ₁mesh, LossFunction, MyColorMap; OptPath= nothing)
+function DrawFunction(ϕ₀grid, ϕ₁grid, LossFunction, ColorMap; OptPath= nothing)
 
 	fig = Figure()
 	ax = Axis(fig[1,1];
 			 xlabel = L"\phi_0",
 			 ylabel = L"\phi_1")
 
-	hm = heatmap!(ax, ϕ₀mesh, ϕ₁mesh, LossFunction; colormap = MyColorMap, interpolate = true)
+	hm = heatmap!(ax, ϕ₀grid, ϕ₁grid, LossFunction; colormap = ColorMap, interpolate = true)
 
-	contour!(ax, ϕ₀mesh, ϕ₁mesh, Loss; level = 20, color = (:grey, 0.5))
+	contour!(ax, ϕ₀grid, ϕ₁grid, LossFunction; levels = 20, color = (:grey, 0.5))
 	Colorbar(fig[1,2], hm; label = "Loss")
 
 	if OptPath !== nothing
@@ -89,6 +86,49 @@ function DrawFunction(ϕ₀mesh, ϕ₁mesh, LossFunction, MyColorMap; OptPath= n
 
 	return fig 
 end
+
+# ╔═╡ 9736d086-9fb5-4bd5-bd5a-09dd22db461a
+md"Simple fixed step size gradient descent"
+
+# ╔═╡ 59c574f7-77bb-4f2a-bba8-99bc351f811f
+function GradDescent(StartPosn, NSteps, α)
+	GradPath = accumulate(1:NSteps; init = StartPosn) do ϕ, _ 
+		thisGrad = GetLossGradient(ϕ[1], ϕ[2])
+		GradPathLast = ϕ .- α .* thisGrad
+	end 
+
+	pushfirst!(GradPath, StartPosn)
+	GradPathAll = reduce(hcat, GradPath)
+end
+
+# ╔═╡ ea934e3f-f854-4c2f-9049-49f73a537e53
+md"We'll start by running gradient descent with a fixed step size for this loss function"
+
+# ╔═╡ 0a3876cb-f16c-40c8-8e48-e704bfff5455
+StartPosn = [-0.7, -0.9]
+
+# ╔═╡ 954f7ec9-2697-4dd3-9652-52597983ec4a
+Loss¹, ϕgrid = GetLossFunctionForPlot()
+
+# ╔═╡ 6e8cbc1b-8d29-41c9-82b0-61f1c1ac7c5f
+GradPath1 = GradDescent(StartPosn, 200, 0.08)
+
+# ╔═╡ c71dd653-67d6-48e7-bf91-676df0892c61
+DrawFunction(ϕgrid, ϕgrid, Loss¹, MyColorMap(); OptPath = GradPath1)
+
+# ╔═╡ f381de18-1501-4c48-b295-0392e6bde254
+GradPath2 = GradDescent(StartPosn, 40, 1.0)
+
+# ╔═╡ 8cd69434-ee82-4c65-ba9f-3d6bfdf64527
+F=DrawFunction(ϕgrid, ϕgrid, Loss¹, MyColorMap(); OptPath = GradPath2)
+
+# ╔═╡ 6a7b136f-0661-4a78-8349-80d23b42f7c9
+md"Because the function changes mush faster in $\phi_1$ than in $\phi_0$, there is no great step size so that it makes sensible progress in th $\phi_1$ direction, then it takes many iterations to converge. If we set the step size so that we make sensible progress in the $\phi_0$ direction, then the path oscillates in the $\phi_1$ direction. "
+
+# ╔═╡ 8ffd48df-b066-4234-ac63-c529fe00abfe
+function NormalizedGradient(StartPosn, NSteps, α; ϵ = 1e-20)
+
+end 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2064,5 +2104,16 @@ version = "4.1.0+0"
 # ╠═46f49f25-61e3-46a7-b4a9-1a3896b1e14e
 # ╟─7a95c1b8-12d5-4b7e-8ae4-4a29acb8d868
 # ╠═5bcf3b8e-da3e-4f0f-bfe0-454d3efecbf9
+# ╟─9736d086-9fb5-4bd5-bd5a-09dd22db461a
+# ╠═59c574f7-77bb-4f2a-bba8-99bc351f811f
+# ╟─ea934e3f-f854-4c2f-9049-49f73a537e53
+# ╠═0a3876cb-f16c-40c8-8e48-e704bfff5455
+# ╠═954f7ec9-2697-4dd3-9652-52597983ec4a
+# ╠═6e8cbc1b-8d29-41c9-82b0-61f1c1ac7c5f
+# ╠═c71dd653-67d6-48e7-bf91-676df0892c61
+# ╠═f381de18-1501-4c48-b295-0392e6bde254
+# ╠═8cd69434-ee82-4c65-ba9f-3d6bfdf64527
+# ╟─6a7b136f-0661-4a78-8349-80d23b42f7c9
+# ╠═8ffd48df-b066-4234-ac63-c529fe00abfe
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
