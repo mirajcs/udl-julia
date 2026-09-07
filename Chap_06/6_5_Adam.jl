@@ -99,6 +99,7 @@ function GradDescent(StartPosn, NSteps, α)
 
 	pushfirst!(GradPath, StartPosn)
 	GradPathAll = reduce(hcat, GradPath)
+	return GradPathAll
 end
 
 # ╔═╡ ea934e3f-f854-4c2f-9049-49f73a537e53
@@ -127,8 +128,22 @@ md"Because the function changes mush faster in $\phi_1$ than in $\phi_0$, there 
 
 # ╔═╡ 8ffd48df-b066-4234-ac63-c529fe00abfe
 function NormalizedGradient(StartPosn, NSteps, α; ϵ = 1e-20)
+	GradPath = accumulate(1:NSteps; init = StartPosn) do ϕ, _ 
+		m = GetLossGradient(ϕ[1], ϕ[2])
+		  v = m .^2
+		GradPathLast = ϕ .- α .* m ./(sqrt.(v) .+ ϵ)
+	end 
 
+	pushfirst!(GradPath, StartPosn)
+	GradPathAll = reduce(hcat, GradPath)
+	return GradPathAll
 end 
+
+# ╔═╡ fffb2b8c-b3c2-4fa7-b578-18b6232c8303
+GradPath3 = NormalizedGradient(StartPosn, 40, 0.08)
+
+# ╔═╡ 0e443569-6bb8-4098-ad41-aadc9da12f32
+DrawFunction(ϕgrid, ϕgrid, Loss¹, MyColorMap(); OptPath= GradPath3)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2115,5 +2130,7 @@ version = "4.1.0+0"
 # ╠═8cd69434-ee82-4c65-ba9f-3d6bfdf64527
 # ╟─6a7b136f-0661-4a78-8349-80d23b42f7c9
 # ╠═8ffd48df-b066-4234-ac63-c529fe00abfe
+# ╠═fffb2b8c-b3c2-4fa7-b578-18b6232c8303
+# ╠═0e443569-6bb8-4098-ad41-aadc9da12f32
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
