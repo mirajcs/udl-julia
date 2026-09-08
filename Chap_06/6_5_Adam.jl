@@ -145,6 +145,39 @@ GradPath3 = NormalizedGradient(StartPosn, 40, 0.08)
 # ╔═╡ 0e443569-6bb8-4098-ad41-aadc9da12f32
 DrawFunction(ϕgrid, ϕgrid, Loss¹, MyColorMap(); OptPath= GradPath3)
 
+# ╔═╡ 5eb82334-6685-44e5-bd18-d4ba14fa1422
+md"This moves towards the minimum at a sensible speed, but we never actually converge. The solution just bounces back and fourth between the last two points. To make it converge, we add momentum to both the estimates of the gradient and the pointwise squared gradient. We also modify the statistics by a factor that depends on the time to make sure the progress is not slow to start with. "
+
+# ╔═╡ 957f7713-3518-41ed-84a5-8bfd8e716492
+function Adam(StartPosn, NSteps, α; β = 0.9, γ= 0.99, ϵ = 1e-20)
+	state₀ = (ϕ = StartPosn, m = zero(StartPosn), v = zero(StartPosn))
+	
+	states = accumulate(1:NSteps; init = state₀) do s, t 
+		g = GetLossGradient(s.ϕ[1], s.ϕ[2])
+
+		m = β .* s.m .+ (1 - β) .* g # momentum on gradient
+		  v = γ .* s.v .+ (1 - γ) .* g .^2 # momentum on squared gradient
+
+		m̃ = m ./ (1 - β^t)
+		  ṽ = v ./ (1 - γ^t)
+
+		ϕ = s.ϕ .- α .* m̃ ./ (sqrt.(ṽ) .+ ϵ)
+ 		(ϕ = ϕ, m = m, v = v )
+		
+	end 
+
+	
+	GradPath =  pushfirst!([s.ϕ for s in states], StartPosn)
+
+	return reduce(hcat,GradPath)
+end 
+
+# ╔═╡ 69c984a0-3115-46e7-b685-a660791ed639
+Gradpath4 = Adam(StartPosn, 60, 0.05; β = 0.9, γ= 0.99, ϵ = 1e-20)
+
+# ╔═╡ 2e7c0722-ba66-4a4d-8dee-f321377a5c1f
+DrawFunction(ϕgrid, ϕgrid, Loss¹, MyColorMap(); OptPath= Gradpath4)
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -2132,5 +2165,9 @@ version = "4.1.0+0"
 # ╠═8ffd48df-b066-4234-ac63-c529fe00abfe
 # ╠═fffb2b8c-b3c2-4fa7-b578-18b6232c8303
 # ╠═0e443569-6bb8-4098-ad41-aadc9da12f32
+# ╟─5eb82334-6685-44e5-bd18-d4ba14fa1422
+# ╠═957f7713-3518-41ed-84a5-8bfd8e716492
+# ╠═69c984a0-3115-46e7-b685-a660791ed639
+# ╠═2e7c0722-ba66-4a4d-8dee-f321377a5c1f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
