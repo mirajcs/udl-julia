@@ -102,6 +102,21 @@ dldω₀(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃) = Symboli
 # ╔═╡ abd5bbaf-8945-4194-8a4e-decabcf1a72e
 dldω₀(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃)
 
+# ╔═╡ 2a671589-96ed-4875-a3e2-6c1ceb471c5c
+dldω₀s= build_function(dldω₀(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ b70afc26-90c9-4bea-bb42-57521294d2e7
+md"Let's make sure this is correct using finite differences."
+
+# ╔═╡ f16d5d4e-616c-42e0-8630-48d2e3487a76
+Fun_val = dldω₀s(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
+# ╔═╡ fdf89122-13e2-4737-9e01-9499f78c6a63
+dldω₀_fd = (loss(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n + 1e-10, ω₁n, ω₂n, ω₃n) - loss(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n))/ 1e-10
+
+# ╔═╡ 399c664c-d962-4157-819d-609877e1a23e
+println("Function Value = $(Fun_val), Finite Dfference Value = $(dldω₀_fd)")
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -824,5 +839,10 @@ version = "5.15.0+0"
 # ╠═bf766b6b-7b0e-4197-b554-21a451fa6849
 # ╠═dcfff878-dae8-435e-a2a9-6f9b5f636237
 # ╠═abd5bbaf-8945-4194-8a4e-decabcf1a72e
+# ╠═2a671589-96ed-4875-a3e2-6c1ceb471c5c
+# ╟─b70afc26-90c9-4bea-bb42-57521294d2e7
+# ╠═f16d5d4e-616c-42e0-8630-48d2e3487a76
+# ╠═fdf89122-13e2-4737-9e01-9499f78c6a63
+# ╠═399c664c-d962-4157-819d-609877e1a23e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
