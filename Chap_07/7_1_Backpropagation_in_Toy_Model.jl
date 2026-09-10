@@ -64,6 +64,18 @@ end
 # ╔═╡ bc93713e-f611-40b4-8565-a3a88e9d8688
 loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃)
 
+# ╔═╡ 6e36b513-478a-41b9-a74b-8d1346124cbe
+md"Now we'll choose some values for the betas and the omegas and x and compute the output of the function:"
+
+# ╔═╡ 468a242d-62d9-4a0c-bcb0-3f7f1b957f39
+begin
+	β₀n = 1.0; β₁n = 2.0; β₂n = -3.0; β₃n = 0.4
+	ω₀n = 0.1; ω₁n = -0.4; ω₂n = 2.0; ω₃n = 3.0
+	xn = 2.3; yn = 2.0
+	lᵢFunc = loss(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+	println("lᵢ = $(lᵢFunc)")
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -778,5 +790,7 @@ version = "5.15.0+0"
 # ╠═46b2d067-aac6-482f-ab71-158830152b64
 # ╠═60346367-2b52-4dab-9a3c-2460c7634d1b
 # ╠═bc93713e-f611-40b4-8565-a3a88e9d8688
+# ╟─6e36b513-478a-41b9-a74b-8d1346124cbe
+# ╠═468a242d-62d9-4a0c-bcb0-3f7f1b957f39
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
