@@ -238,6 +238,51 @@ dldβ₃Expr = build_function(dldβ₃, x, y, β₀, β₁, β₂, β₃, ω₀,
 # ╔═╡ 5eb4dcb5-2438-4732-8cda-ff51ec444fcd
 dldβ₃n = dldβ₃Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
 
+# ╔═╡ 40d45f90-92fd-4ea5-90fc-9cca0af840f7
+dldω₃¹ = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), ω₃)
+
+# ╔═╡ e2798acd-576f-49a8-862e-df0d3b832f57
+dldω₃¹Expr = build_function(dldω₃¹, x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ f7b8f9d3-3f42-4e66-a7af-96a492eff6d9
+dldω₃¹n = dldω₃¹Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
+# ╔═╡ 5431378a-4a34-4ef1-9ab9-fa4d667ab15c
+dldβ₂ = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), β₂)
+
+# ╔═╡ c494aa73-07da-4924-9440-23c7e2be7b17
+dldβ₂Expr = build_function(dldβ₂, x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ 29300781-dda6-471e-b60d-93955e135e58
+dldβ₂n = dldβ₂Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
+# ╔═╡ 277eb11c-74b1-446c-ac62-4372ccff382d
+dldω₂ = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), ω₂)
+
+# ╔═╡ 0ea00f7f-e100-4032-9207-a95d6b225e38
+dldω₂Expr = build_function(dldω₂, x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ f80a5ebd-51a2-4a5e-93ae-55ff0964a006
+dldω₂n = dldω₂Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
+# ╔═╡ 141ef7c4-84db-44ca-bc3e-e02fb58cf726
+dldβ₁ = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), β₁)
+
+# ╔═╡ f219c5b4-694b-41df-a329-2dffc4cefa11
+dldβ₁Expr = build_function(dldβ₁, x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ ba954a3c-6c41-4f91-8b29-c164a3968652
+dldβ₁n = dldβ₁Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
+# ╔═╡ 48f4dc37-6002-4eb7-a16e-a86633a09c38
+begin
+	println("dldβ₃: true value = 0.745, your value = $(round(dldβ₃n, digits = 3))")
+	println("dldω₃: true value = 0.489, your value = $(round(dldω₃¹n, digits = 3))")
+	println("dldβ₂: true value = -1.683, your value = $(round(dldβ₂n, digits = 3))")
+	println("dldω₂: true value = -8.530, your value = $(round(dldω₂n, digits = 3))")
+	println("dldβ₁: true value = -17.060, your value = $(round(dldβ₁n, digits = 3))")
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -978,5 +1023,18 @@ version = "5.15.0+0"
 # ╠═4a56bbcd-3df9-4ac2-a7a5-7ede38814687
 # ╠═bb59a1ad-1ec4-4c0c-a910-f05ac3e81365
 # ╠═5eb4dcb5-2438-4732-8cda-ff51ec444fcd
+# ╠═40d45f90-92fd-4ea5-90fc-9cca0af840f7
+# ╠═e2798acd-576f-49a8-862e-df0d3b832f57
+# ╠═f7b8f9d3-3f42-4e66-a7af-96a492eff6d9
+# ╠═5431378a-4a34-4ef1-9ab9-fa4d667ab15c
+# ╠═c494aa73-07da-4924-9440-23c7e2be7b17
+# ╠═29300781-dda6-471e-b60d-93955e135e58
+# ╠═277eb11c-74b1-446c-ac62-4372ccff382d
+# ╠═0ea00f7f-e100-4032-9207-a95d6b225e38
+# ╠═f80a5ebd-51a2-4a5e-93ae-55ff0964a006
+# ╠═141ef7c4-84db-44ca-bc3e-e02fb58cf726
+# ╠═f219c5b4-694b-41df-a329-2dffc4cefa11
+# ╠═ba954a3c-6c41-4f91-8b29-c164a3968652
+# ╠═48f4dc37-6002-4eb7-a16e-a86633a09c38
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
