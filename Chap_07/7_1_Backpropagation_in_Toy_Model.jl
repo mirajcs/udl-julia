@@ -76,6 +76,32 @@ begin
 	println("lᵢ = $(lᵢFunc)")
 end
 
+# ╔═╡ 28b805c1-7f66-4b25-964d-b7e73c0701b4
+md"## Computing derivatives by hand
+
+We could compute expressions for the derivatives by hand and write code to compute them directly but some have very complex expressions, even for this relatively simple original equation. For example:
+
+$$\begin{align}
+\frac{\partial \ell_i}{\partial \omega_{0}} &=& -2 \left( \beta_3+\omega_3\cdot\cos\Bigl[\beta_2+\omega_2\cdot\exp\bigl[\beta_1+\omega_1\cdot\sin[\beta_0+\omega_0\cdot x_i]\bigr]\Bigr]-y_i\right)\nonumber \\
+&&\hspace{0.5cm}\cdot \omega_1\omega_2\omega_3\cdot x_i\cdot\cos[\beta_0+\omega_0 \cdot x_i]\cdot\exp\Bigl[\beta_1 + \omega_1 \cdot \sin[\beta_0+\omega_0\cdot x_i]\Bigr]\nonumber\\
+&& \hspace{1cm}\cdot \sin\biggl[\beta_2+\omega_2\cdot \exp\Bigl[\beta_1 + \omega_1 \cdot \sin[\beta_0+\omega_0\cdot x_i]\Bigr]\biggr].
+\end{align}$$"
+
+# ╔═╡ afde602c-572f-4807-80d0-50c41ac0784e
+md"Here, I will use Symbolics to compute the derivative."
+
+# ╔═╡ 2b012c7a-1110-499d-87a5-09670a375843
+dldω₃(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃) = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), ω₃)
+
+# ╔═╡ bf766b6b-7b0e-4197-b554-21a451fa6849
+dldω₃(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃)
+
+# ╔═╡ dcfff878-dae8-435e-a2a9-6f9b5f636237
+dldω₀(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃) = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), ω₀)
+
+# ╔═╡ abd5bbaf-8945-4194-8a4e-decabcf1a72e
+dldω₀(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃)
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -792,5 +818,11 @@ version = "5.15.0+0"
 # ╠═bc93713e-f611-40b4-8565-a3a88e9d8688
 # ╟─6e36b513-478a-41b9-a74b-8d1346124cbe
 # ╠═468a242d-62d9-4a0c-bcb0-3f7f1b957f39
+# ╟─28b805c1-7f66-4b25-964d-b7e73c0701b4
+# ╟─afde602c-572f-4807-80d0-50c41ac0784e
+# ╠═2b012c7a-1110-499d-87a5-09670a375843
+# ╠═bf766b6b-7b0e-4197-b554-21a451fa6849
+# ╠═dcfff878-dae8-435e-a2a9-6f9b5f636237
+# ╠═abd5bbaf-8945-4194-8a4e-decabcf1a72e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
