@@ -117,6 +117,127 @@ dldω₀_fd = (loss(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n + 1e-10, ω�
 # ╔═╡ 399c664c-d962-4157-819d-609877e1a23e
 println("Function Value = $(Fun_val), Finite Dfference Value = $(dldω₀_fd)")
 
+# ╔═╡ 18223764-50de-4ce7-a479-173842b5f905
+md"**Step 1:** Write the original equations as a series of intermediate calculations.
+
+$$\begin{align}
+f_{0} &=& \beta_{0} + \omega_{0} x_i\nonumber\\
+h_{1} &=& \sin[f_{0}]\nonumber\\
+f_{1} &=& \beta_{1} + \omega_{1}h_{1}\nonumber\\
+h_{2} &=& \exp[f_{1}]\nonumber\\
+f_{2} &=& \beta_{2} + \omega_{2} h_{2}\nonumber\\
+h_{3} &=& \cos[f_{2}]\nonumber\\
+f_{3} &=& \beta_{3} + \omega_{3}h_{3}\nonumber\\
+l_i &=& (f_3-y_i)^2
+\end{align}$$
+
+and compute and store the values of all of these intermediate values.  We'll need them to compute the derivatives.  
+
+This is called the **forward pass**."
+
+# ╔═╡ 47417d64-1d38-4ff0-a171-2b022780437e
+begin
+	f₀ = β₀n + ω₀n*xn
+	h₁ = sin(f₀)
+	f₁ = β₁n + ω₁n*h₁
+	h₂ = exp(f₁)
+	f₂ = β₂n + ω₂n*h₂
+	h₃ = cos(f₂)
+	f₃ = β₃n + ω₃n*h₃
+	lᵢ = (f₃ - yn)^2
+end
+
+# ╔═╡ 3a4c9c59-b056-4aed-bda1-cece11500a3b
+md"Let's check we got that right."
+
+# ╔═╡ 54bab49f-687e-4b0d-bbe3-68d4508ff0ff
+begin
+	println("f₀: true value = 1.230, your value = $(round(f₀, digits = 3))")
+	println("h₁: true value = 0.942, your value = $(round(h₁, digits = 3))")
+	println("f₁: true value = 1.623, your value = $(round(f₁, digits = 3))")
+	println("h₂: true value = 5.068, your value = $(round(h₂, digits = 3))")
+	println("f₂: true value = 7.137, your value = $(round(f₂, digits = 3))")
+	println("h₃: true value = 0.657, your value = $(round(h₃, digits = 3))")
+	println("f₃: true value = 2.372, your value = $(round(f₃, digits = 3))")
+	println("lᵢ: true value = 0.139, lᵢ form forward pass = $(round(lᵢ, digits = 3))")
+end 
+
+# ╔═╡ e900eb7e-9d28-454d-81e6-bcfb16977d7e
+md"**Step 2:** Compute the derivatives of $\ell_i$ with respect to the intermediate quantities that we just calculated, but in reverse order:
+
+$$\begin{align}
+\quad \frac{\partial \ell_i}{\partial f_3}, \quad \frac{\partial \ell_i}{\partial h_3}, \quad \frac{\partial \ell_i}{\partial f_2}, \quad
+\frac{\partial \ell_i}{\partial h_2}, \quad \frac{\partial \ell_i}{\partial f_1}, \quad \frac{\partial \ell_i}{\partial h_1},  \quad\text{and} \quad \frac{\partial \ell_i}{\partial f_0}.
+\end{align}$$
+
+The first of these derivatives is straightforward:
+
+$$\begin{equation}
+\frac{\partial \ell_i}{\partial f_{3}} = 2 (f_3-y).
+\end{equation}$$
+
+The second derivative can be calculated using the chain rule:
+
+$$\begin{equation}
+\frac{\partial \ell_i}{\partial h_{3}} =\frac{\partial f_{3}}{\partial h_{3}} \frac{\partial \ell_i}{\partial f_{3}} .
+\end{equation}$$
+
+The left-hand side asks how $\ell_i$ changes when $h_{3}$ changes.  The right-hand side says we can decompose this into (i) how $\ell_i$ changes when $f_{3}$ changes and how $f_{3}$ changes when $h_{3}$ changes.  So you get a chain of events happening:  $h_{3}$ changes $f_{3}$, which changes $\ell_i$, and the derivatives represent the effects of this chain.  Notice that we computed the first of these derivatives already and is  $2 (f_3-y)$. We calculated $f_{3}$ in step 1.  The second term is the derivative of $\beta_{3} + \omega_{3}h_{3}$ with respect to $h_3$ which is simply $\omega_3$.  
+
+We can continue in this way, computing the derivatives of the output with respect to these intermediate quantities:
+
+$$\begin{align}
+\frac{\partial \ell_i}{\partial f_{2}} &=& \frac{\partial h_{3}}{\partial f_{2}}\left(
+\frac{\partial f_{3}}{\partial h_{3}}\frac{\partial \ell_i}{\partial f_{3}} \right)
+\nonumber \\
+\frac{\partial \ell_i}{\partial h_{2}} &=& \frac{\partial f_{2}}{\partial h_{2}}\left(\frac{\partial h_{3}}{\partial f_{2}}\frac{\partial f_{3}}{\partial h_{3}}\frac{\partial \ell_i}{\partial f_{3}}\right)\nonumber \\
+\frac{\partial \ell_i}{\partial f_{1}} &=& \frac{\partial h_{2}}{\partial f_{1}}\left( \frac{\partial f_{2}}{\partial h_{2}}\frac{\partial h_{3}}{\partial f_{2}}\frac{\partial f_{3}}{\partial h_{3}}\frac{\partial \ell_i}{\partial f_{3}} \right)\nonumber \\
+\frac{\partial \ell_i}{\partial h_{1}} &=& \frac{\partial f_{1}}{\partial h_{1}}\left(\frac{\partial h_{2}}{\partial f_{1}} \frac{\partial f_{2}}{\partial h_{2}}\frac{\partial h_{3}}{\partial f_{2}}\frac{\partial f_{3}}{\partial h_{3}}\frac{\partial \ell_i}{\partial f_{3}} \right)\nonumber \\
+\frac{\partial \ell_i}{\partial f_{0}} &=& \frac{\partial h_{1}}{\partial f_{0}}\left(\frac{\partial f_{1}}{\partial h_{1}}\frac{\partial h_{2}}{\partial f_{1}} \frac{\partial f_{2}}{\partial h_{2}}\frac{\partial h_{3}}{\partial f_{2}}\frac{\partial f_{3}}{\partial h_{3}}\frac{\partial \ell_i}{\partial f_{3}} \right).
+\end{align}$$
+
+In each case, we have already computed all of the terms except the last one in the previous step, and the last term is simple to evaluate.  This is called the **backward pass**."
+
+# ╔═╡ 7cb3e8f9-1968-4ae7-a23a-9029c5863af7
+md"Please see the [Problem 7.2](https://pluto.land/n/zdvfc9tt) for symbolic computations."
+
+# ╔═╡ ae7a4782-28a5-4ac5-9366-137986375575
+begin
+	dldf₃ = 2*(f₃ - yn)
+	dldh₃ = ω₃n * dldf₃
+	dldf₂ = -sin(f₂)*dldh₃
+	dldh₂ = ω₂n * dldf₂
+	dldf₁ = exp(f₁) * dldh₂
+	dldh₁ = ω₁n * dldf₁
+	dldf₀ = cos(f₀) * dldh₁
+end
+
+# ╔═╡ d76ca964-18b5-4957-a1c8-1dd83a6e13ef
+md"Let's check we got that right. "
+
+# ╔═╡ ae79fe46-77e0-446b-9282-e7e4b4e2a6dd
+begin
+	println("dldf₃: true value = 0.745, your value = $(round(dldf₃, digits = 3))")
+	println("dldh₃: true value = 2.234, your value = $(round(dldh₃, digits = 3))")
+	println("dldf₂: true value = -1.683, your value = $(round(dldf₂, digits = 3))")
+	println("dldh₂: true value = -3.366, your value = $(round(dldh₂, digits = 3))")
+	println("dldf₁: true value = -17.060, your value = $(round(dldf₁, digits = 3))")
+	println("dldh₁: true value = 6.824, your value = $(round(dldh₁, digits = 3))")
+	println("dldf₀: true value = 2.281, your value = $(round(dldf₀, digits = 3))")
+end
+
+# ╔═╡ 14bf014b-1081-4ed7-b623-6e7ed0301f59
+md"Calculate the final derivatives with respect to the β and ω terms. "
+
+# ╔═╡ 4a56bbcd-3df9-4ac2-a7a5-7ede38814687
+dldβ₃ = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), β₃)
+
+# ╔═╡ bb59a1ad-1ec4-4c0c-a910-f05ac3e81365
+dldβ₃Expr = build_function(dldβ₃, x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ 5eb4dcb5-2438-4732-8cda-ff51ec444fcd
+dldβ₃n = dldβ₃Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -844,5 +965,18 @@ version = "5.15.0+0"
 # ╠═f16d5d4e-616c-42e0-8630-48d2e3487a76
 # ╠═fdf89122-13e2-4737-9e01-9499f78c6a63
 # ╠═399c664c-d962-4157-819d-609877e1a23e
+# ╟─18223764-50de-4ce7-a479-173842b5f905
+# ╠═47417d64-1d38-4ff0-a171-2b022780437e
+# ╟─3a4c9c59-b056-4aed-bda1-cece11500a3b
+# ╠═54bab49f-687e-4b0d-bbe3-68d4508ff0ff
+# ╟─e900eb7e-9d28-454d-81e6-bcfb16977d7e
+# ╟─7cb3e8f9-1968-4ae7-a23a-9029c5863af7
+# ╠═ae7a4782-28a5-4ac5-9366-137986375575
+# ╟─d76ca964-18b5-4957-a1c8-1dd83a6e13ef
+# ╠═ae79fe46-77e0-446b-9282-e7e4b4e2a6dd
+# ╟─14bf014b-1081-4ed7-b623-6e7ed0301f59
+# ╠═4a56bbcd-3df9-4ac2-a7a5-7ede38814687
+# ╠═bb59a1ad-1ec4-4c0c-a910-f05ac3e81365
+# ╠═5eb4dcb5-2438-4732-8cda-ff51ec444fcd
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
