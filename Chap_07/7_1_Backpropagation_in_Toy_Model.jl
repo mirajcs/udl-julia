@@ -274,6 +274,33 @@ dldβ₁Expr = build_function(dldβ₁, x, y, β₀, β₁, β₂, β₃, ω₀,
 # ╔═╡ ba954a3c-6c41-4f91-8b29-c164a3968652
 dldβ₁n = dldβ₁Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
 
+# ╔═╡ a27079d8-5b99-4a3b-91f0-afed18aae013
+dldω₁ = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), ω₁)
+
+# ╔═╡ 6bf8d72f-11ee-4f7d-be95-1d3314a07d4c
+dldω₁Expr = build_function(dldω₁, x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ 00be8b73-405e-47d5-930f-e94eecc2e969
+dldω₁n = dldω₁Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
+# ╔═╡ 2ade2566-4a27-456f-ba3e-c9e968d1f71e
+dldβ₀ = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), β₀)
+
+# ╔═╡ 38de9d3c-a0bc-44ba-809d-67f30826954a
+dldβ₀Expr = build_function(dldβ₀, x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ 66ff04ee-7472-4b61-8bbc-bc3177e350d4
+dldβ₀n = dldβ₀Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
+# ╔═╡ 45447078-d080-4c8f-89c1-8349829dcf43
+dldω₀¹ = Symbolics.derivative(loss(x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃), ω₀)
+
+# ╔═╡ 97b492f3-9756-4ead-9884-23babdc62bcf
+dldω₀¹Expr = build_function(dldω₀¹, x, y, β₀, β₁, β₂, β₃, ω₀, ω₁, ω₂, ω₃; expression = Val{false})
+
+# ╔═╡ 0155d9e3-8a67-4fbc-9908-dedb01995373
+dldω₀¹n = dldω₀¹Expr(xn, yn, β₀n, β₁n, β₂n, β₃n, ω₀n, ω₁n, ω₂n, ω₃n)
+
 # ╔═╡ 48f4dc37-6002-4eb7-a16e-a86633a09c38
 begin
 	println("dldβ₃: true value = 0.745, your value = $(round(dldβ₃n, digits = 3))")
@@ -281,7 +308,13 @@ begin
 	println("dldβ₂: true value = -1.683, your value = $(round(dldβ₂n, digits = 3))")
 	println("dldω₂: true value = -8.530, your value = $(round(dldω₂n, digits = 3))")
 	println("dldβ₁: true value = -17.060, your value = $(round(dldβ₁n, digits = 3))")
+	println("dldω₁: true value = -16.079, your value = $(round(dldω₁n, digits = 3))")
+	println("dldβ₀: true value = 2.281, your value = $(round(dldβ₀n, digits = 3))")
+	println("dldω₀: Your value = $(round(dldω₀¹n, digits = 3)), function value = $(round(Fun_val, digits = 3)), finite difference value =  $(round(dldω₀_fd, digits = 3))")
 end
+
+# ╔═╡ 9e4da429-831e-40f1-9341-956ce6b9472e
+md"Using this method, we can compute the derivatives quite easily without needing to compute very complicated expressions. In the next practical, we'll apply this same method to a deep neural network."
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1035,6 +1068,16 @@ version = "5.15.0+0"
 # ╠═141ef7c4-84db-44ca-bc3e-e02fb58cf726
 # ╠═f219c5b4-694b-41df-a329-2dffc4cefa11
 # ╠═ba954a3c-6c41-4f91-8b29-c164a3968652
+# ╠═a27079d8-5b99-4a3b-91f0-afed18aae013
+# ╠═6bf8d72f-11ee-4f7d-be95-1d3314a07d4c
+# ╠═00be8b73-405e-47d5-930f-e94eecc2e969
+# ╠═2ade2566-4a27-456f-ba3e-c9e968d1f71e
+# ╠═38de9d3c-a0bc-44ba-809d-67f30826954a
+# ╠═66ff04ee-7472-4b61-8bbc-bc3177e350d4
+# ╠═45447078-d080-4c8f-89c1-8349829dcf43
+# ╠═97b492f3-9756-4ead-9884-23babdc62bcf
+# ╠═0155d9e3-8a67-4fbc-9908-dedb01995373
 # ╠═48f4dc37-6002-4eb7-a16e-a86633a09c38
+# ╟─9e4da429-831e-40f1-9341-956ce6b9472e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
