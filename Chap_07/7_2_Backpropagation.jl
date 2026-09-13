@@ -7,18 +7,39 @@ using InteractiveUtils
 # ╔═╡ 1297ff3a-326a-4ebe-8293-19802e210c10
 using CairoMakie
 
+# ╔═╡ 66fe6aea-f9ac-42e3-b611-7c20e597ab8b
+using Random 
+
 # ╔═╡ f842d82e-afbb-11f1-8b90-17d84ca8f2ba
 md"# Notebook 7.2 - Backpropagation
 
 This notebook runs the backpropagation algorithm on a deep neural network as described in section 7.4 of the book."
 
 # ╔═╡ 3ac2dbcd-80d5-49bc-a162-3cf63454fa4a
+md"First let's define a neural network. We'll just choose the weights and biases randomly for now."
 
+# ╔═╡ 833ee01a-9d6c-49f0-8a7b-8d7bc8cec27d
+begin
+	Random.seed!(0) # set seed so we always get the same random number
+	
+	K = 5 # number of hidden layers 
+	D = 6 # number of neurons per layer
+	Dᵢ = 1 # Input layer 
+	D₀ = 1 # Output layer 
+
+
+	# create input and output layers 
+	AllWeights = [i == 1 ? randn(D, Dᵢ) :
+		i == K + 1 ? randn(D₀, D) :
+		randn(D, D)
+		for i in 1:(K+1)]
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 CairoMakie = "~0.15.13"
@@ -30,7 +51,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "273213d8845cb68d6405d362c1aa6df679e54c29"
+project_hash = "ee36040d616fc99b27b9e97ffd5bcd9899ef60ad"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1666,6 +1687,8 @@ version = "4.1.0+0"
 # ╔═╡ Cell order:
 # ╟─f842d82e-afbb-11f1-8b90-17d84ca8f2ba
 # ╠═1297ff3a-326a-4ebe-8293-19802e210c10
-# ╠═3ac2dbcd-80d5-49bc-a162-3cf63454fa4a
+# ╠═66fe6aea-f9ac-42e3-b611-7c20e597ab8b
+# ╟─3ac2dbcd-80d5-49bc-a162-3cf63454fa4a
+# ╠═833ee01a-9d6c-49f0-8a7b-8d7bc8cec27d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
