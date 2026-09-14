@@ -34,8 +34,8 @@ begin
 		randn(D, D)
 		for i in 1:(K+1)]
 	AllBiases = [i == 1 ? randn(D, 1) :
-		i == K + 1 ? randn(D, 1) : 
-		rand(D₀, 1) 
+		i == K + 1 ? randn(D₀, 1) : 
+		randn(D, 1) 
 		for i in 1:(K+1)]
 end
 
@@ -46,6 +46,37 @@ md"Define the Rectified linear unit (ReLU) function"
 function ReLU(preactivation)
 	activation = max.(0, preactivation)
 end
+
+# ╔═╡ b1bb0b5f-91af-447d-9f13-1bb3965953ea
+md"Now let's run our random network. The weight matrices $\Omega_{0, \dots, K}$ are the entries of the list 'AllWeights' and the biases $β_{0,K+1}$ are the entries of the list 'AllBiases'
+
+We know that we will need the preactivations $f_{0, \dots, K}$ and the activation $h_{1, \dots, K}$ for the forward pass of backpropagation, so we'll store and return these as well."
+
+# ╔═╡ 1e605512-f5af-4574-85ff-5c45fd23b249
+function ComputeNetworkOutput(NetInput, AllWeights, AllBiases)
+	K = length(AllWeights) - 1
+
+	AllH = [NetInput]
+	AllF = [AllBiases[1] + AllWeights[1]*NetInput]
+
+	for k in 2:K+1
+		push!(AllH, ReLU(AllF[end]))
+		push!(AllF, AllBiases[k] + AllWeights[k]*AllH[end])
+	end
+
+	NetOutput = AllF[end]
+	
+	return NetOutput, AllH, AllF
+end
+
+# ╔═╡ 742b249b-ad1c-4867-9604-741e54f7acc4
+md"Define input"
+
+# ╔═╡ b9234078-699d-4c62-a3b0-3a3984fd15db
+NetInput = ones(Dᵢ,1)*1.2
+
+# ╔═╡ fae36926-4418-46b9-8538-beaffed15dd9
+println("Output = $(ComputeNetworkOutput(NetInput, AllWeights, AllBiases)[1])")
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1704,5 +1735,10 @@ version = "4.1.0+0"
 # ╠═833ee01a-9d6c-49f0-8a7b-8d7bc8cec27d
 # ╟─2bd598a4-19f2-4ac9-a5a3-9f6b68979af2
 # ╠═a877dca8-9c04-4a2d-8417-1019733443ad
+# ╟─b1bb0b5f-91af-447d-9f13-1bb3965953ea
+# ╠═1e605512-f5af-4574-85ff-5c45fd23b249
+# ╟─742b249b-ad1c-4867-9604-741e54f7acc4
+# ╠═b9234078-699d-4c62-a3b0-3a3984fd15db
+# ╠═fae36926-4418-46b9-8538-beaffed15dd9
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
