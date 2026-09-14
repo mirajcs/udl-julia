@@ -76,7 +76,7 @@ md"Define input"
 NetInput = ones(Dᵢ,1)*1.2
 
 # ╔═╡ 82679b3a-4db6-44c6-a4ca-fcd2d9a0f56a
-NetOutput = ComputeNetworkOutput(NetInput, AllWeights, AllBiases)[1]
+NetOutput, AllH, AllF = ComputeNetworkOutput(NetInput, AllWeights, AllBiases)
 
 # ╔═╡ fae36926-4418-46b9-8538-beaffed15dd9
 println("Output = $(ComputeNetworkOutput(NetInput, AllWeights, AllBiases)[1])")
@@ -102,7 +102,39 @@ begin
 end
 
 # ╔═╡ 65184f7a-057a-4b1b-9d1c-6e6bb4c2beff
-md""
+md"Now let's compute the derivatives of the network. We already computed the forward pass. Let's compute the backward pass. "
+
+# ╔═╡ 7e1f6e50-dfdd-455d-a4bb-97c9920d449c
+function IndicatorFunction(x)
+	return float.(x .> 0)
+end
+
+# ╔═╡ 158740b9-8db9-49ff-91da-c75e84aa14b2
+function BackwardPass(AllWeights, AllBiases, AllF, AllH, y)
+	K = length(AllWeights) - 1
+
+	AllDl_Df = [dLoss_dOutput(AllF[end], y)]
+	AllDl_Dh = empty(AllH)
+	AllDl_DWeights = empty(AllWeights)
+	AllDl_DBiases = empty(AllBiases)
+
+	for k in K+1:-1:1
+		pushfirst!(AllDl_DBiases, copy(AllDl_Df[1]))
+		pushfirst!(AllDl_DWeights, AllDl_Df[1]*AllH[k]')
+		pushfirst!(AllDl_Dh, AllWeights[k]' * AllDl_Df[1])
+
+		if k > 1 
+			pushfirst!(AllDl_Df, AllDl_Dh[1] .* IndicatorFunction(AllF[k-1]))
+		end
+	end
+	return AllDl_DWeights, AllDl_DBiases
+end
+
+# ╔═╡ 41a2a409-e2bc-416b-ac48-967e756c2ef2
+AllDl_DWeights, AllDl_DBiases = BackwardPass(AllWeights, AllBiases, AllF, AllH, y)
+
+# ╔═╡ b49ff959-1757-4c58-88d3-938b983c87dc
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1968,6 +2000,10 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╠═7f9c33a0-4dab-44f0-a6d7-77ce59485860
 # ╠═00c07efd-6a6f-4dc9-91b4-6f2e2d1585fb
 # ╠═e5bc36c7-ce00-4057-9856-c78bf285bdd4
-# ╠═65184f7a-057a-4b1b-9d1c-6e6bb4c2beff
+# ╟─65184f7a-057a-4b1b-9d1c-6e6bb4c2beff
+# ╠═7e1f6e50-dfdd-455d-a4bb-97c9920d449c
+# ╠═158740b9-8db9-49ff-91da-c75e84aa14b2
+# ╠═41a2a409-e2bc-416b-ac48-967e756c2ef2
+# ╠═b49ff959-1757-4c58-88d3-938b983c87dc
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
