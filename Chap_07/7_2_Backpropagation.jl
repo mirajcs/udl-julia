@@ -40,7 +40,12 @@ begin
 end
 
 # ╔═╡ 2bd598a4-19f2-4ac9-a5a3-9f6b68979af2
+md"Define the Rectified linear unit (ReLU) function"
 
+# ╔═╡ a877dca8-9c04-4a2d-8417-1019733443ad
+function ReLU(preactivation)
+	activation = max.(0, preactivation)
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1697,6 +1702,7 @@ version = "4.1.0+0"
 # ╠═66fe6aea-f9ac-42e3-b611-7c20e597ab8b
 # ╟─3ac2dbcd-80d5-49bc-a162-3cf63454fa4a
 # ╠═833ee01a-9d6c-49f0-8a7b-8d7bc8cec27d
-# ╠═2bd598a4-19f2-4ac9-a5a3-9f6b68979af2
+# ╟─2bd598a4-19f2-4ac9-a5a3-9f6b68979af2
+# ╠═a877dca8-9c04-4a2d-8417-1019733443ad
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
