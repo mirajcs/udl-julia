@@ -130,11 +130,62 @@ function BackwardPass(AllWeights, AllBiases, AllF, AllH, y)
 	return AllDl_DWeights, AllDl_DBiases
 end
 
+# ╔═╡ 24e66d4b-8c9a-4581-a066-86762dbd49e9
+md"Save the gradients"
+
 # ╔═╡ 41a2a409-e2bc-416b-ac48-967e756c2ef2
 AllDl_DWeights, AllDl_DBiases = BackwardPass(AllWeights, AllBiases, AllF, AllH, y)
 
-# ╔═╡ b49ff959-1757-4c58-88d3-938b983c87dc
+# ╔═╡ a589633a-b285-40c7-99b2-a2c347665c9b
+md"The finite-difference step"
 
+# ╔═╡ b49ff959-1757-4c58-88d3-938b983c87dc
+δFD = 1e-6
+
+# ╔═╡ ba7768da-268e-4a43-9dc0-649f80f95d4f
+md"Check the biases"
+
+# ╔═╡ f8a52c31-1704-41d6-990e-c5f731cdcb4e
+begin
+	AllDl_DBiasesFD = [map(CartesianIndices(AllBiases[k])) do idx 
+		AllBiasesCopy = copy.(AllBiases)
+		AllBiasesCopy[k][idx] += δFD 
+		NetOutput1 = ComputeNetworkOutput(NetInput, AllWeights, AllBiasesCopy)[1]
+		(LeastSquaresLoss(NetOutput1, y) - LeastSquaresLoss(NetOutput,y)) / δFD
+	end for k in 1: K+1]
+
+	for k in 1:K+1
+		println("-----------------------------------------------")
+		println("Bias $(k), derivatives form backprop:")
+		display(round.(AllDl_DBiases[k], digits=3))
+		println("Bias $(k), derivatives from finite differences: ")
+		display(round.(AllDl_DBiasesFD[k], digits = 3)) 
+		if all(isapprox.(AllDl_DBiasesFD[k], AllDl_DBiases[k], rtol=1e-5, atol=1e-8))
+			println("Success! Derivatives match.")
+		else 
+			println("Failure! Derivatives different. ")
+		end
+	end 
+end
+
+# ╔═╡ e56928ca-8038-4188-af70-c13b315ccf5a
+begin 
+	AllDl_DWeightsFD = [map(CartesianIndices(AllWeights[k])) do idx 
+		AllWeightsCopy = copy.(AllWeights)
+		AllWeightsCopy[k][idx] += δFD
+		NetOutput1 = ComputeNetworkOutput(NetInput, AllWeightsCopy, AllBiases)[1]
+		(LeastSquaresLoss(NetOutput1, y) - LeastSquaresLoss(NetOutput, y))/ δFD 
+	end for k in 1:K+1]
+
+	Markdown.parse("""
+				   | Weight | Backprop | Finite differences | Result |
+				   | :------ | :------- | :---------------- | :----- |
+				   """ * join(map(1:K+1) do k 
+					   Result = all(isapprox.(AllDl_DWeightsFD[k], AllDl_DWeights[k], rtol=1e-5, atol=1e-8)) ? 
+						   "Success! Derivative match." : "Failure! Derivative different."
+					   "| $(k) | `$(round.(AllDl_DWeights[k], digits=3))` | `$(round.(AllDl_DWeightsFD[k], digits=3))` | $(Result) | \n"
+				   end))
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2003,7 +2054,12 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╟─65184f7a-057a-4b1b-9d1c-6e6bb4c2beff
 # ╠═7e1f6e50-dfdd-455d-a4bb-97c9920d449c
 # ╠═158740b9-8db9-49ff-91da-c75e84aa14b2
+# ╟─24e66d4b-8c9a-4581-a066-86762dbd49e9
 # ╠═41a2a409-e2bc-416b-ac48-967e756c2ef2
+# ╟─a589633a-b285-40c7-99b2-a2c347665c9b
 # ╠═b49ff959-1757-4c58-88d3-938b983c87dc
+# ╟─ba7768da-268e-4a43-9dc0-649f80f95d4f
+# ╠═f8a52c31-1704-41d6-990e-c5f731cdcb4e
+# ╠═e56928ca-8038-4188-af70-c13b315ccf5a
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
