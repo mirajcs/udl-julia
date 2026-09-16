@@ -18,8 +18,40 @@ md"First, let's define a neural network. We'll just choose the weights and biase
 
 # ╔═╡ b7dc78e5-fb31-4329-a962-1f6ff30ad09d
 function InitParam(K, D, σ²Ω)
-	
+	Dᵢ = 1 # Input layer
+	D₀ = 1 # output layer 
+
+	AllWeights = [i == 1 ? randn(D, Dᵢ)*sqrt(σ²Ω) : 
+		i == K+1 ? randn(D₀, D) : 
+			randn(D,D) for i in 1:(K+1)]
+
+	AllBiases = [i == 1 ? randn(D, 1) : 
+		i == K + 1 ? randn(D₀, 1) : 
+			randn(D, 1) for i in 1:(K + 1)]
+	return AllWeights, AllBiases
 end
+
+# ╔═╡ 2a24b7c6-b379-4b4b-9ba5-7bc614c73618
+function ReLU(preactivation)
+	activation = max.(0, preactivation)
+end
+
+# ╔═╡ 1009f5ff-669b-4ed2-9cf6-c640783fc767
+function ComputeNetworkOutput(NetInput, AllWeights, AllBiases)
+	K = length(AllWeights) - 1
+
+	AllH = [NetInput]
+	AllF = [AllBiases[1] + AllWeights[1]*NetInput]
+
+	for k in 2:K+1
+		push!(AllH, ReLU(AllF[end]))
+		push!(AllF, AllBiases[k] + AllWeights[k]*AllH[end])
+	end
+
+	NetOuput = AllF[end]
+
+	return NetOuput, AllH, AllH
+end 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1873,5 +1905,7 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╠═4b66e277-1351-42ab-9c17-74fc35ad3da3
 # ╟─bc76f90e-6e00-4dbb-95c7-4a112bfc50a9
 # ╠═b7dc78e5-fb31-4329-a962-1f6ff30ad09d
+# ╠═2a24b7c6-b379-4b4b-9ba5-7bc614c73618
+# ╠═1009f5ff-669b-4ed2-9cf6-c640783fc767
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
