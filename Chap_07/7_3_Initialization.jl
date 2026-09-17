@@ -5,10 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ 1a36086b-ad38-4036-acd8-3294d9ac5e81
-using CairoMakie
-
-# ╔═╡ 4b66e277-1351-42ab-9c17-74fc35ad3da3
-using Random
+using CairoMakie, Random,Printf,Statistics
 
 # ╔═╡ ddbe8c50-b1eb-11f1-8be0-fbfe8e7601f3
 md"This notebook explores weight initialization in deep neural networks as described in section 7.5 of the book. "
@@ -18,12 +15,13 @@ md"First, let's define a neural network. We'll just choose the weights and biase
 
 # ╔═╡ b7dc78e5-fb31-4329-a962-1f6ff30ad09d
 function InitParam(K, D, σ²Ω)
+	Random.seed!(0)
 	Dᵢ = 1 # Input layer
 	D₀ = 1 # output layer 
 
 	AllWeights = [i == 1 ? randn(D, Dᵢ)*sqrt(σ²Ω) : 
-		i == K+1 ? randn(D₀, D) : 
-			randn(D,D) for i in 1:(K+1)]
+		i == K+1 ? randn(D₀, D)*sqrt(σ²Ω) : 
+			randn(D,D)*sqrt(σ²Ω) for i in 1:(K+1)]
 
 	AllBiases = [i == 1 ? randn(D, 1) : 
 		i == K + 1 ? randn(D₀, 1) : 
@@ -41,23 +39,151 @@ function ComputeNetworkOutput(NetInput, AllWeights, AllBiases)
 	K = length(AllWeights) - 1
 
 	AllH = [NetInput]
-	AllF = [AllBiases[1] + AllWeights[1]*NetInput]
+	AllF = [AllBiases[1] .+ AllWeights[1]*NetInput]
 
 	for k in 2:K+1
 		push!(AllH, ReLU(AllF[end]))
-		push!(AllF, AllBiases[k] + AllWeights[k]*AllH[end])
+		push!(AllF, AllBiases[k] .+ AllWeights[k]*AllH[end])
 	end
 
 	NetOuput = AllF[end]
 
-	return NetOuput, AllH, AllH
+	return NetOuput, AllF, AllH
 end 
+
+# ╔═╡ acb23bdc-aa6a-44eb-8768-b8a272dacd27
+md"Now let's investigate how the size of the outputs vary as we change the initialization variance: "
+
+# ╔═╡ 315dc7e6-491d-4b7a-86e3-cecbe4450a8a
+begin
+	Random.seed!(0)
+	DataIn = randn(1, 1000)
+end 
+
+# ╔═╡ b4def5b9-c7ad-4bc6-aa0c-40aeb3ae870f
+begin
+	K = 5 # Number of hidden layers
+	D = 8 # number of neurons per layer
+	σ²Ω = 1
+end
+
+# ╔═╡ 2ff1327e-a9cc-48f1-8aae-f2fad3cf233d
+AllWeights, AllBiases = InitParam(K, D, σ²Ω)
+
+# ╔═╡ a62a88b0-e209-45bf-a3fa-0dd34a47397d
+NetOutput, AllF, AllH = ComputeNetworkOutput(DataIn, AllWeights, AllBiases)
+
+# ╔═╡ 9f570d6a-c4d3-4145-8320-415168e6c1a3
+for layer in 1:K
+	@printf("Layer %d, std of hidden units = %3.3f\n", layer, std(AllH[layer+1]))
+end 
+
+# ╔═╡ 139d3a22-43ab-4d6e-8f03-b626aba5236b
+md"You can see that the values of the hidden units are increasing on average (the variance is across all hidden units at the layer) and the 1000 training examples 
+
+-TODO
+
+Change this to 50 layers with 80 hidden units per layer. 
+
+-TODO 
+
+Now experiment with σ²Ω to try to stop the variance of the forward computation exploding. "
+
+# ╔═╡ 5d326d0b-78b8-46a9-a537-5bdfbeb27e43
+md"Now let's define a loss function. We'll just use the least squares loss function. We'll also write a function to compute dLoss_dOutput"
+
+# ╔═╡ bf5fcb77-6874-4ba6-b0d0-5087723ca152
+function LeastSquaresLoss(NetOutput, y)
+	return sum((NetOutput - y).^2)
+end
+
+# ╔═╡ 29be66cf-c1a5-47c9-bf7d-739fc5270bee
+function dLoss_dOutput(NetOutput, y)
+	return 2*(NetOutput - y)
+end
+
+# ╔═╡ 27d09830-d345-4a37-8937-e3572e09a308
+md"Here's the code for the backward pass"
+
+# ╔═╡ ca5838fa-c9b5-45c8-895f-ca4eb3146dc9
+function IndicatorFunction(x)
+	return float.(x .> 0)
+end
+
+# ╔═╡ 1d801f64-9c55-42df-a38d-155a7ae7bf5f
+function BackwardPass(AllWeights, AllBiases, AllF, AllH, y)
+	K = length(AllWeights) - 1
+
+	AllDl_Df = [dLoss_dOutput(AllF[end], y)]
+	AllDl_Dh = empty(AllH)
+	AllDl_DWeights = empty(AllWeights)
+	AllDl_DBiases = empty(AllBiases)
+
+	for k in K+1:-1:1
+		pushfirst!(AllDl_DBiases, copy(AllDl_Df[1]))
+		pushfirst!(AllDl_DWeights, AllDl_Df[1] * AllH[k]')
+		pushfirst!(AllDl_Dh, AllWeights[k]' * AllDl_Df[1])
+
+		if k > 1
+			pushfirst!(AllDl_Df, AllDl_Dh[1] .* IndicatorFunction(AllF[k-1]))
+		end 
+	end
+	return AllDl_DWeights, AllDl_DBiases, AllDl_Df, AllDl_Df
+end
+
+# ╔═╡ a5ad2d09-17a4-4db8-8922-8f8dada0fc0e
+md"Now let's look at what happens to the magnitude of the gradients on the way back. "
+
+# ╔═╡ d78e2418-7e4c-4b86-8471-8e5ead85cc44
+begin 
+	K₁ = 5 # number of layers 
+	D₁ = 8 # number of neurons per layer 
+	σ²Ω¹ = 1
+end
+
+# ╔═╡ e9004849-ab8e-415b-83c7-2b3c3ca8b358
+AllWeights₁, AllBiases₁ = InitParam(K₁, D₁, σ²Ω¹)
+
+# ╔═╡ 8edc652e-b5f2-40a7-9981-f60ff7aeb407
+md"For simplicity we'll just consider the gradient of the weights and biases between the first and last hidden layer."
+
+# ╔═╡ 7ca455f9-efb1-42f9-9ae3-06338a3986f4
+let 
+	NData = 100
+
+	#dl/df for every layer, for each data point
+	AllGrads = map(1:NData) do _
+		DataIn = randn(1,1)
+		y = zeros(1,1)
+		_, AllF, AllH = ComputeNetworkOutput(DataIn, AllWeights₁, AllBiases₁)
+		_, _, _, AllDl_Df = BackwardPass(AllWeights₁, AllBiases₁, AllF, AllH, y)
+		AllDl_Df
+	end
+
+	for layer in K₁-1:-1:1
+		σ = std(Iterators.flatten(g[layer+1] for g in AllGrads))
+		@printf("Layer %d, std of dl_dh = %3.3f\n", layer, σ)
+	end
+end 
+
+# ╔═╡ fff0fa67-0a03-40b0-af9b-cd8baf7f5163
+md"You can see that the gradient of the hidden units are increasing on average (the standard deviation is across all hidden units of the layer and the 100 training examples)
+
+-TODO
+
+Change this to 50 layers with 80 hidden units per layer
+
+-TODO
+
+Now experiment with σ²Ω₁ to try to stop the variance of the gradient exploding. "
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 CairoMakie = "~0.15.13"
@@ -69,7 +195,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.13.0"
 manifest_format = "2.1"
-project_hash = "ee36040d616fc99b27b9e97ffd5bcd9899ef60ad"
+project_hash = "8cec0167321246d001dea5b0a0470d1f516fb13a"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1902,10 +2028,28 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╔═╡ Cell order:
 # ╟─ddbe8c50-b1eb-11f1-8be0-fbfe8e7601f3
 # ╠═1a36086b-ad38-4036-acd8-3294d9ac5e81
-# ╠═4b66e277-1351-42ab-9c17-74fc35ad3da3
 # ╟─bc76f90e-6e00-4dbb-95c7-4a112bfc50a9
 # ╠═b7dc78e5-fb31-4329-a962-1f6ff30ad09d
 # ╠═2a24b7c6-b379-4b4b-9ba5-7bc614c73618
 # ╠═1009f5ff-669b-4ed2-9cf6-c640783fc767
+# ╟─acb23bdc-aa6a-44eb-8768-b8a272dacd27
+# ╠═315dc7e6-491d-4b7a-86e3-cecbe4450a8a
+# ╠═b4def5b9-c7ad-4bc6-aa0c-40aeb3ae870f
+# ╠═2ff1327e-a9cc-48f1-8aae-f2fad3cf233d
+# ╠═a62a88b0-e209-45bf-a3fa-0dd34a47397d
+# ╠═9f570d6a-c4d3-4145-8320-415168e6c1a3
+# ╟─139d3a22-43ab-4d6e-8f03-b626aba5236b
+# ╟─5d326d0b-78b8-46a9-a537-5bdfbeb27e43
+# ╠═bf5fcb77-6874-4ba6-b0d0-5087723ca152
+# ╠═29be66cf-c1a5-47c9-bf7d-739fc5270bee
+# ╟─27d09830-d345-4a37-8937-e3572e09a308
+# ╠═ca5838fa-c9b5-45c8-895f-ca4eb3146dc9
+# ╠═1d801f64-9c55-42df-a38d-155a7ae7bf5f
+# ╟─a5ad2d09-17a4-4db8-8922-8f8dada0fc0e
+# ╠═d78e2418-7e4c-4b86-8471-8e5ead85cc44
+# ╠═e9004849-ab8e-415b-83c7-2b3c3ca8b358
+# ╟─8edc652e-b5f2-40a7-9981-f60ff7aeb407
+# ╠═7ca455f9-efb1-42f9-9ae3-06338a3986f4
+# ╟─fff0fa67-0a03-40b0-af9b-cd8baf7f5163
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
