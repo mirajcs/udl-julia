@@ -2,3 +2,4 @@
 .vscode/
 Manifest.toml
 test.jl
+*.pkl
