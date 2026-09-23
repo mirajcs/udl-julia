@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ a4e17d59-14d1-4c4d-b641-b91f4240e128
-using Pickle, Downloads, CairoMakie, Lux, Random
+using Pickle, Downloads, CairoMakie, Lux, Random, Optimisers, Zygote, MLUtils, Printf
 
 # ╔═╡ 0398be2c-b751-11f1-bbfd-f18135f9b862
 md"# Notebook 8.1 - MNIST 1D Performance 
@@ -30,14 +30,14 @@ let
 	fig = Figure(size=(900, 400))
 	for d in 0:9
 		i = findfirst(==(d), y)
-		ax = Axis(fig[d ÷ 5 + 1, d % 5 + 1]; title ="$d", yreversed=true, limits=(-3.2,3.2, 0, 40))
+		ax = Axis(fig[d ÷ 5 + 1, d % 5 + 1]; title ="$d", yreversed=true, limits=(-4,4, 0, 40))
 		lines!(ax, x[i, :], 1:40; linewidth=2)
 	end
 	fig
 end 
 
 # ╔═╡ a9f34c9f-aea6-4c61-9b6c-9539d317401d
-md"The 10 clean digit shpaes"
+md"The 10 clean digit shapes"
 
 # ╔═╡ fbbfd446-5efb-4767-a763-d94903462e51
 let
@@ -63,8 +63,8 @@ Length of each example: $(size(data["x"], 2))
 # ╔═╡ 17e40386-dc1f-474f-bf7a-1efc8966e133
 begin 
 	Dᵢ = 40 # Input dimension
-	Dₖ = 100 #hidden dimension
-	D₀ = 10 # output dimension 
+	Dₖ = 100 # Hidden dimension
+	Dₒ = 10 # Output dimension 
 end
 
 # ╔═╡ 2e5fed5b-c7cd-4801-b1b1-d47853acabde
@@ -74,24 +74,98 @@ md"Two hidden layers of size 100 with ReLU activations, all weights He (Kaiming)
 model = Chain(
 	Dense(Dᵢ => Dₖ, relu; init_weight=kaiming_normal, init_bias=zeros32),
 	Dense(Dₖ => Dₖ, relu; init_weight=kaiming_normal, init_bias= zeros32),
-	Dense(Dₖ => D₀; init_weight=kaiming_normal, init_bias=zeros32)
+	Dense(Dₖ => Dₒ; init_weight=kaiming_normal, init_bias=zeros32)
 )
-
-# ╔═╡ 9983769f-fee0-406f-af46-9b3068866765
-begin
-	rng = Random.default_rng()
-	Random.seed!(rng, 0)
-	ps, st = Lux.setup(rng, model)
-end
 
 # ╔═╡ 8bfccede-8747-47fb-8a75-2d872d0ffdcf
 begin
-	xTrain = Float32.(permutedims(data["x"]))
-	xTest = Float32.(permutedims(data["x_test"]))
+	x_train = Float32.(permutedims(data["x"]))
+	x_test = Float32.(permutedims(data["x_test"]))
 	onehot(y) = Float32.(0:9 .== permutedims(y))
-	yTrain = onehot(data["y"])
-	yTest = onehot(data["y_test"])
+	y_train = onehot(data["y"])
+	y_test = onehot(data["y_test"])
 end
+
+# ╔═╡ 4398d616-4991-4cdb-9c67-4609f96485c5
+md"Choose cross entropy loss function (equation 5.24); the model outputs raw scors (logits)"
+
+# ╔═╡ 7c36acc8-6b6c-4ec3-8036-32e92260d785
+loss_function = CrossEntropyLoss(; logits=Val(true))
+
+# ╔═╡ c33240c0-bbb5-4eef-ae13-ff404c9039cc
+begin
+	# predicted digit (0-9) for each column of scores 
+	predicted_class(ŷ) = vec(getindex.(argmax(ŷ; dims=1), 1)) .- 1
+	# % of examples classified wrongly
+	error_rate(ŷ, y) = 100 - 100 * sum(predicted_class(ŷ) .== y) / length(y)
+end
+
+# ╔═╡ 3fcd5744-c7f1-4ca4-ac3f-4c27a6ee7c39
+losses_train, errors_train, losses_test, errors_test = let
+	# loop over the dataset n_epoch times
+	n_epoch = 50
+	
+	# fresh copy of the initial weights (training updates them in place)
+	ps, st = Lux.setup(Xoshiro(0), model)
+	# SGD with momentum, learning rate 0.05
+	lr = 0.05 
+	train_state = Training.TrainState(model, ps, st, Momentum(lr, 0.9))
+
+	# batches of 100, reshuffled every epoch
+	data_loader = DataLoader((x_train, y_train); batchsize=100, shuffle=true, rng=Xoshiro(1))
+
+	history = map(1:n_epoch) do epoch
+		# loop over batches: forward pass, loss, backward pass and SGD update
+		for (x_batch, y_batch) in data_loader
+			_, _, _, train_state = Training.single_train_step!(AutoZygote(), loss_function, (x_batch, y_batch), train_state)
+		end
+
+		# run whole dataset to get statistics - normally wouldn't do that
+		ps_now, st_now = train_state.parameters, Lux.testmode(train_state.states)
+		pred_train = first(model(x_train, ps_now, st_now))
+		pred_test = first(model(x_test, ps_now, st_now))
+		loss_train = loss_function(pred_train, y_train)
+		error_train = error_rate(pred_train, data["y"])
+		loss_test = loss_function(pred_test, y_test)
+		error_test = error_rate(pred_test, data["y_test"])
+		@printf("Epoch %5d, train loss %.6f, train error %3.2f, test loss %.6f, test error %3.2f\n", epoch, loss_train, error_train, loss_test, error_test)
+		
+		# halve the learning rate every 10 epochs (StepLR)
+		if epoch % 10 == 0
+			lr /= 2
+			Optimisers.adjust!(train_state.optimizer_state, lr)
+		end
+		(loss_train, error_train, loss_test, error_test)
+	end 
+	# split the per-epoch tuples into four vectors
+	[getindex.(history, i) for i in 1:4]
+end
+
+# ╔═╡ 7d176610-bb84-46ea-8768-61ef5d642e34
+let 
+	n_epoch = length(errors_train)
+	fig = Figure()
+	ax = Axis(fig[1,1]; xlabel="Epoch", ylabel="Error",
+			 title=@sprintf("Train error %3.2f, Test error %3.2f", errors_train[end], errors_test[end]), limits=(0, n_epoch, 0, 100))
+	lines!(ax, 1:n_epoch, errors_train; color=:red, label="train")
+	lines!(ax, 1:n_epoch, errors_test; color=:blue, label="test")
+	axislegend(ax)
+	fig
+end
+
+# ╔═╡ 85728420-e277-4854-984e-bfb8d8474863
+let
+	n_epoch = length(losses_train)
+	fig = Figure()
+	ax = Axis(fig[1, 1]; xlabel="Epoch", ylabel="Loss",
+		title=@sprintf("Train loss %3.2f, Test loss %3.2f", losses_train[end], losses_test[end]),
+		limits=(0, n_epoch, nothing, nothing))
+	lines!(ax, 1:n_epoch, losses_train; color=:red, label="train")
+	lines!(ax, 1:n_epoch, losses_test; color=:blue, label="test")
+	axislegend(ax)
+	fig
+end
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -99,13 +173,20 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 Lux = "b2108857-7c20-44ae-9111-449ecde12c47"
+MLUtils = "f1d291b0-491e-4a28-83b9-f70985020b54"
+Optimisers = "3bd65402-5787-11e9-1adc-39752487f4e2"
 Pickle = "fbb45041-c46e-462f-888f-7c521cafbc2c"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 CairoMakie = "~0.15.14"
 Lux = "~1.31.4"
+MLUtils = "~0.4.13"
+Optimisers = "~0.4.9"
 Pickle = "~0.3.7"
+Zygote = "~0.7.13"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -114,7 +195,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.13.0"
 manifest_format = "2.1"
-project_hash = "5716ce1fe9533b73adff75bb59b600000f7ce07b"
+project_hash = "6789994c83a3a8c5c93fb6060b14981bc46ac668"
 
 [[deps.ADTypes]]
 deps = ["PrecompileTools"]
@@ -368,6 +449,13 @@ registries = "General"
 uuid = "83423d85-b0ee-5818-9007-b63ccbeb887a"
 version = "1.18.7+0"
 
+[[deps.ChainRules]]
+deps = ["Adapt", "ChainRulesCore", "Compat", "Distributed", "GPUArraysCore", "IrrationalConstants", "LinearAlgebra", "Random", "RealDot", "SparseArrays", "SparseInverseSubset", "Statistics", "StructArrays", "SuiteSparse"]
+git-tree-sha1 = "3c190c570fb3108c09f838607386d10c71701789"
+registries = "General"
+uuid = "082447d4-558c-5d27-93f4-14fc19e9eca2"
+version = "1.73.0"
+
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra"]
 git-tree-sha1 = "12177ad6b3cad7fd50c8b3825ce24a99ad61c18f"
@@ -378,6 +466,13 @@ weakdeps = ["SparseArrays"]
 
     [deps.ChainRulesCore.extensions]
     ChainRulesCoreSparseArraysExt = "SparseArrays"
+
+[[deps.CodeTracking]]
+deps = ["InteractiveUtils", "REPL", "UUIDs"]
+git-tree-sha1 = "cfb7a2e89e245a9d5016b70323db412b3a7438d5"
+registries = "General"
+uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
+version = "3.0.2"
 
 [[deps.CodecZstd]]
 deps = ["TranscodingStreams", "Zstd_jll"]
@@ -559,6 +654,13 @@ git-tree-sha1 = "4ac548adcad90c1d5d677af13568a748af4c952b"
 registries = "General"
 uuid = "927a84f5-c5f4-47a5-9785-b46e178433df"
 version = "1.6.7"
+
+[[deps.DelimitedFiles]]
+deps = ["Mmap"]
+git-tree-sha1 = "9e2f36d3c96a820c678f2f1f1782582fcf685bae"
+registries = "General"
+uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+version = "1.9.1"
 
 [[deps.DiffResults]]
 deps = ["StaticArraysCore"]
@@ -908,6 +1010,13 @@ git-tree-sha1 = "31bb6c92405c084617facc1d7ed9eb6c402d061e"
 registries = "General"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.30"
+
+[[deps.IRTools]]
+deps = ["InteractiveUtils", "MacroTools"]
+git-tree-sha1 = "88d07a6b68b8fffb13cacd49e23ea73c571859b2"
+registries = "General"
+uuid = "7869d1d1-7146-5819-86e3-90919afe41df"
+version = "0.4.20"
 
 [[deps.IfElse]]
 git-tree-sha1 = "debdd00ffef04665ccbb3e150747a77560e8fad1"
@@ -1385,6 +1494,19 @@ version = "1.15.9"
     Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
     cuDNN = "02a925ec-e4fe-4b08-9a7e-0d78e3d38ccd"
 
+[[deps.MLCore]]
+deps = ["DataAPI", "SimpleTraits", "Tables"]
+git-tree-sha1 = "c4ab44fe709638fda6f2c0cbfea2c114932d6c2f"
+registries = "General"
+uuid = "c2834f40-e789-41da-a90e-33b280584a8c"
+version = "1.1.0"
+
+    [deps.MLCore.extensions]
+    MLCorePythonCallExt = "PythonCall"
+
+    [deps.MLCore.weakdeps]
+    PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
+
 [[deps.MLDataDevices]]
 deps = ["Adapt", "Functors", "Preferences", "Random", "SciMLPublic"]
 git-tree-sha1 = "29b00f22be6fd821a214760f0224329f21998a05"
@@ -1433,6 +1555,13 @@ version = "1.17.10"
     Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
     cuDNN = "02a925ec-e4fe-4b08-9a7e-0d78e3d38ccd"
     oneAPI = "8f75cd03-7ff8-4ecb-9b8f-daf728133b1b"
+
+[[deps.MLUtils]]
+deps = ["ChainRulesCore", "CodeTracking", "Compat", "DataAPI", "DelimitedFiles", "Distributed", "InteractiveUtils", "MLCore", "Mmap", "NNlib", "Random", "ShowCases", "SimpleTraits", "Statistics", "StatsBase", "Tables"]
+git-tree-sha1 = "0a589dc0ada20d30b7e9ad13752cf25361875bf2"
+registries = "General"
+uuid = "f1d291b0-491e-4a28-83b9-f70985020b54"
+version = "0.4.13"
 
 [[deps.MacroTools]]
 git-tree-sha1 = "1e0228a030642014fe5cfe68c2c0a818f9e3f522"
@@ -1840,6 +1969,13 @@ registries = "General"
 uuid = "a3311ec8-5e00-46d5-b541-4f83e724a433"
 version = "0.1.22"
 
+[[deps.RealDot]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "9f0a1b71baaf7650f4fa8a1d168c7fb6ee41f0c9"
+registries = "General"
+uuid = "c1ae055f-0cd5-4b69-90a6-9a35b1a98df9"
+version = "0.1.0"
+
 [[deps.Reexport]]
 git-tree-sha1 = "45e428421666073eab6f2da5c9d310d99bb12f9b"
 registries = "General"
@@ -1958,6 +2094,12 @@ deps = ["Distributed", "Mmap", "Random", "Serialization"]
 uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 version = "1.11.0"
 
+[[deps.ShowCases]]
+git-tree-sha1 = "7f534ad62ab2bd48591bdeac81994ea8c445e4a5"
+registries = "General"
+uuid = "605ecd9f-84a6-4c9e-81e2-4798472b76a3"
+version = "0.1.0"
+
 [[deps.SignedDistanceFields]]
 deps = ["Statistics"]
 git-tree-sha1 = "3949ad92e1c9d2ff0cd4a1317d5ecbba682f4b92"
@@ -1994,6 +2136,13 @@ version = "1.2.3"
 deps = ["Libdl", "LinearAlgebra", "Random", "Serialization", "SuiteSparse_jll"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 version = "1.13.0"
+
+[[deps.SparseInverseSubset]]
+deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
+git-tree-sha1 = "eec446511ab8c3293dd846c61c15128392fceed5"
+registries = "General"
+uuid = "dc90abb0-5640-4711-901d-7e5b23a2fada"
+version = "0.1.3"
 
 [[deps.SpecialFunctions]]
 deps = ["IrrationalConstants", "LogExpFunctions", "OpenLibm_jll", "OpenSpecFun_jll"]
@@ -2377,6 +2526,34 @@ deps = ["CompilerSupportLibraries_jll", "Libdl"]
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
 version = "1.5.7+1"
 
+[[deps.Zygote]]
+deps = ["AbstractFFTs", "ChainRules", "ChainRulesCore", "DiffRules", "Distributed", "FillArrays", "ForwardDiff", "GPUArraysCore", "IRTools", "InteractiveUtils", "LinearAlgebra", "LogExpFunctions", "MacroTools", "NaNMath", "PrecompileTools", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "ZygoteRules"]
+git-tree-sha1 = "a1ec45a8a0adee4d581a37f7e1a0fb401c1cb113"
+registries = "General"
+uuid = "e88e6eb3-aa80-5325-afca-941959d7151f"
+version = "0.7.13"
+
+    [deps.Zygote.extensions]
+    ZygoteAtomExt = "Atom"
+    ZygoteCUDAExt = "CUDA"
+    ZygoteColorsExt = "Colors"
+    ZygoteDistancesExt = "Distances"
+    ZygoteTrackerExt = "Tracker"
+
+    [deps.Zygote.weakdeps]
+    Atom = "c52e3926-4ff0-5f6e-af25-54175e0327b1"
+    CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+    Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
+    Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+    Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
+
+[[deps.ZygoteRules]]
+deps = ["ChainRulesCore", "MacroTools"]
+git-tree-sha1 = "c6a86c133861234450ab260dee01b42abd604095"
+registries = "General"
+uuid = "700de1a5-db45-46bc-99cf-38207098b444"
+version = "0.2.8"
+
 [[deps.isoband_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "51b5eeb3f98367157a7a12a1fb0aa5328946c03c"
@@ -2493,7 +2670,12 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╠═17e40386-dc1f-474f-bf7a-1efc8966e133
 # ╟─2e5fed5b-c7cd-4801-b1b1-d47853acabde
 # ╠═e7f19230-6bb7-44f5-bd3b-4aa749972cf2
-# ╠═9983769f-fee0-406f-af46-9b3068866765
 # ╠═8bfccede-8747-47fb-8a75-2d872d0ffdcf
+# ╟─4398d616-4991-4cdb-9c67-4609f96485c5
+# ╠═7c36acc8-6b6c-4ec3-8036-32e92260d785
+# ╠═c33240c0-bbb5-4eef-ae13-ff404c9039cc
+# ╠═3fcd5744-c7f1-4ca4-ac3f-4c27a6ee7c39
+# ╠═7d176610-bb84-46ea-8768-61ef5d642e34
+# ╠═85728420-e277-4854-984e-bfb8d8474863
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
