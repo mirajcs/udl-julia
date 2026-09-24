@@ -17,7 +17,7 @@ md"The true function that we are trying to estimate, defined on [0,1]."
 
 # ╔═╡ 4a2790bf-3966-487e-bda5-c345f667805a
 function true_function(x)
-	y = exp(sin(x*(2*3.1413)))
+	y = exp(sin(x*(2π)))
 end
 
 # ╔═╡ d42dbe7c-8b42-4172-b485-6cd1181d5abd
@@ -25,7 +25,7 @@ md"Generate some data points with or without noise"
 
 # ╔═╡ 29ed1aad-f3dc-4a9b-876a-d5326132a98e
 function generate_data(n_data; σ_y = 0.3)
-	Random.seed!(0)
+	Random.seed!(1)
 	# generate x values quasi uniformly: one point in each bin [(i-1)/n, 1/n]
 	x = [((i - 1) + rand()) / n_data for i in 1:n_data]
 
@@ -45,14 +45,14 @@ function plot_function(x_func, y_func; x_data=nothing, y_data=nothing, x_model=n
 
 	# Makie draws in call order, so bands go first to stay behind the lines.
 	if !isnothing(σ_func)
-		band!(ax, x_model, y_func .- 2σ_func, y_func .+ 2σ_func, color=:lightgray)
+		band!(ax, x_func, y_func .- 2σ_func, y_func .+ 2σ_func, color=:lightgray)
 	end
 
 	if !isnothing(σ_model)
 		band!(ax, x_model, y_model .- 2σ_model, y_model .+ 2σ_model, color=:lightgray)
 	end
 
-	lines!(ax, x_func, y_func)
+	lines!(ax, x_func, y_func, color=:black)
 
 	if !isnothing(x_model)
 		lines!(ax, x_model, y_model, color=:cyan)
@@ -62,8 +62,23 @@ function plot_function(x_func, y_func; x_data=nothing, y_data=nothing, x_model=n
 		scatter!(ax, x_data, y_data, color=:orange)
 	end
 	
-
+	xlims!(ax, 0, 1)
 	return fig
+end
+
+# ╔═╡ 4197db13-c0e3-4eb1-ba90-9bf28d9f2e3c
+let 
+	# generate the true function 
+	x_func = 0:0.01:1.0
+	y_func = true_function.(x_func)
+
+	# generate some data points 
+	σ_func = 0.3 
+	n_data = 15
+	x_data, y_data = generate_data(n_data; σ_y=σ_func)
+
+	# plot the function, data and uncertanity
+	plot_function(x_func, y_func; x_data=x_data, y_data=y_data, σ_func=σ_func)
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1918,5 +1933,6 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╠═29ed1aad-f3dc-4a9b-876a-d5326132a98e
 # ╟─c737e82b-7048-405b-9654-a9cbb6bf08df
 # ╠═406caf02-49ba-4d65-9799-6aa651fddcde
+# ╠═4197db13-c0e3-4eb1-ba90-9bf28d9f2e3c
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
