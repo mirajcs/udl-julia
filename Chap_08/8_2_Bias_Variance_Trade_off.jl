@@ -13,6 +13,17 @@ md"# Notebook 8.2 - Bias-Variance Trade Off
 This notebook investigates the bias-variance trade-off for the toy model used throughout chapter 8 and reproduces the bias/variance trade off curves seen in figure 8.9."
 
 # ╔═╡ 7e615ba5-e0a5-419d-99b4-18153e610dc9
+md"The true function that we are trying to estimate, defined on [0,1]."
+
+# ╔═╡ 4a2790bf-3966-487e-bda5-c345f667805a
+function true_function(x)
+	y = exp(sin(x*(2*3.1413)))
+end
+
+# ╔═╡ d42dbe7c-8b42-4172-b485-6cd1181d5abd
+md"Generate some data points with or without noise"
+
+# ╔═╡ 29ed1aad-f3dc-4a9b-876a-d5326132a98e
 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1860,6 +1871,9 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╔═╡ Cell order:
 # ╟─c5bac3ba-b80f-11f1-867b-c7078cfd122e
 # ╠═c601deaf-e521-40b3-9057-40dca394c0f4
-# ╠═7e615ba5-e0a5-419d-99b4-18153e610dc9
+# ╟─7e615ba5-e0a5-419d-99b4-18153e610dc9
+# ╠═4a2790bf-3966-487e-bda5-c345f667805a
+# ╟─d42dbe7c-8b42-4172-b485-6cd1181d5abd
+# ╠═29ed1aad-f3dc-4a9b-876a-d5326132a98e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
