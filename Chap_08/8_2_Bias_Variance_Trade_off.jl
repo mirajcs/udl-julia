@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ c601deaf-e521-40b3-9057-40dca394c0f4
-using CairoMakie
+using CairoMakie, Random
 
 # ╔═╡ c5bac3ba-b80f-11f1-867b-c7078cfd122e
 md"# Notebook 8.2 - Bias-Variance Trade Off
@@ -24,12 +24,25 @@ end
 md"Generate some data points with or without noise"
 
 # ╔═╡ 29ed1aad-f3dc-4a9b-876a-d5326132a98e
+function generate_data(n_data; σ_y = 0.3)
+	Random.seed!(0)
+	# generate x values quasi uniformly: one point in each bin [(i-1)/n, 1/n]
+	x = [((i - 1) + rand()) / n_data for i in 1:n_data]
 
+	# y value from running through function and adding noise 
+	y = true_function.(x) .+ σ_y .* randn(n_data)
+
+	return x, y
+end
+
+# ╔═╡ c737e82b-7048-405b-9654-a9cbb6bf08df
+generate_data(2)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 CairoMakie = "~0.15.14"
@@ -41,7 +54,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.13.0"
 manifest_format = "2.1"
-project_hash = "d0a4be2c72e8ebf502545d9fa4edf12f4c6036ca"
+project_hash = "ae2423396986318ea91abb405608bad59a2ba638"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1875,5 +1888,6 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╠═4a2790bf-3966-487e-bda5-c345f667805a
 # ╟─d42dbe7c-8b42-4172-b485-6cd1181d5abd
 # ╠═29ed1aad-f3dc-4a9b-876a-d5326132a98e
+# ╠═c737e82b-7048-405b-9654-a9cbb6bf08df
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
