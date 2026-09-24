@@ -36,7 +36,35 @@ function generate_data(n_data; σ_y = 0.3)
 end
 
 # ╔═╡ c737e82b-7048-405b-9654-a9cbb6bf08df
-generate_data(2)
+md"Draw the fitted function, together with uncertanity used to generate points. "
+
+# ╔═╡ 406caf02-49ba-4d65-9799-6aa651fddcde
+function plot_function(x_func, y_func; x_data=nothing, y_data=nothing, x_model=nothing, y_model=nothing, σ_func=nothing, σ_model=nothing)
+	fig = Figure()
+	ax = Axis(fig[1,1], xlabel=L"Input, $x$", ylabel=L"Output, $y$")
+
+	# Makie draws in call order, so bands go first to stay behind the lines.
+	if !isnothing(σ_func)
+		band!(ax, x_model, y_func .- 2σ_func, y_func .+ 2σ_func, color=:lightgray)
+	end
+
+	if !isnothing(σ_model)
+		band!(ax, x_model, y_model .- 2σ_model, y_model .+ 2σ_model, color=:lightgray)
+	end
+
+	lines!(ax, x_func, y_func)
+
+	if !isnothing(x_model)
+		lines!(ax, x_model, y_model, color=:cyan)
+	end
+
+	if !isnothing(x_data)
+		scatter!(ax, x_data, y_data, color=:orange)
+	end
+	
+
+	return fig
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1888,6 +1916,7 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╠═4a2790bf-3966-487e-bda5-c345f667805a
 # ╟─d42dbe7c-8b42-4172-b485-6cd1181d5abd
 # ╠═29ed1aad-f3dc-4a9b-876a-d5326132a98e
-# ╠═c737e82b-7048-405b-9654-a9cbb6bf08df
+# ╟─c737e82b-7048-405b-9654-a9cbb6bf08df
+# ╠═406caf02-49ba-4d65-9799-6aa651fddcde
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
