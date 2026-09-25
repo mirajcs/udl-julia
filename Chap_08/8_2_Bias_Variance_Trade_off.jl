@@ -67,7 +67,7 @@ function plot_function(x_func, y_func; x_data=nothing, y_data=nothing, x_model=n
 end
 
 # ╔═╡ 4197db13-c0e3-4eb1-ba90-9bf28d9f2e3c
-let 
+begin
 	# generate the true function 
 	x_func = 0:0.01:1.0
 	y_func = true_function.(x_func)
@@ -94,6 +94,31 @@ function network(x, β, Ω)
 	# Add bias 
 	return y .+ β
 end
+
+# ╔═╡ a33b1975-c986-4394-adaa-1a106dead11f
+md"This fits the n_hidden + 1 parameters (see fig 8.4a) in closed form. It is the least squares solution (AᵀA)⁻¹Aᵀb" 
+
+# ╔═╡ 4443ab0a-8c47-4066-8e84-e25e5acb91b7
+function fit_model_closed_form(x, y, n_hidden)
+	# First column of ones for β, then one ReLU column per hidden unit
+	A = [ones(length(x)) max.(x .- ((0:n_hidden-1) / n_hidden)', 0)]
+
+	βΩ = A \ y
+
+	β = βΩ[1]
+	Ω = βΩ[2:end]
+
+	return β, Ω
+end 
+
+# ╔═╡ 9ea343cf-7bc9-4aa3-a273-2ae97370a1c9
+md"Closed form solution"
+
+# ╔═╡ 45e50829-03e1-4ede-b309-a12aa5c810cc
+β, Ω = fit_model_closed_form(x_data, y_data, 3)
+
+# ╔═╡ 68dc1e3f-26ce-49df-8054-fdde9efde37e
+md"Get prediction for model across graph range"
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1950,5 +1975,10 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╠═4197db13-c0e3-4eb1-ba90-9bf28d9f2e3c
 # ╟─58d72baa-7afe-4e7c-865b-95b6df5886a0
 # ╠═5a9e8c50-31e3-497d-9f95-ce0d429f018d
+# ╟─a33b1975-c986-4394-adaa-1a106dead11f
+# ╠═4443ab0a-8c47-4066-8e84-e25e5acb91b7
+# ╟─9ea343cf-7bc9-4aa3-a273-2ae97370a1c9
+# ╠═45e50829-03e1-4ede-b309-a12aa5c810cc
+# ╟─68dc1e3f-26ce-49df-8054-fdde9efde37e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
