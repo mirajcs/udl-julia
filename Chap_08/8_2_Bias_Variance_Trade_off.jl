@@ -25,7 +25,7 @@ md"Generate some data points with or without noise"
 
 # ╔═╡ 29ed1aad-f3dc-4a9b-876a-d5326132a98e
 function generate_data(n_data; σ_y = 0.3)
-	Random.seed!(1)
+	#Random.seed!(1)
 	# generate x values quasi uniformly: one point in each bin [(i-1)/n, 1/n]
 	x = [((i - 1) + rand()) / n_data for i in 1:n_data]
 
@@ -119,6 +119,23 @@ md"Closed form solution"
 
 # ╔═╡ 68dc1e3f-26ce-49df-8054-fdde9efde37e
 md"Get prediction for model across graph range"
+
+# ╔═╡ c8aba02c-9aa2-47d6-b2ff-6acf483cc8e4
+begin
+	x_model = 0:0.01:1
+	y_model = network(x_model, β, Ω)
+end
+
+# ╔═╡ 9b26dc6b-225f-4a7b-98cc-99d0f128f441
+plot_function(x_func, y_func; x_data=x_data, y_data=y_data, x_model=x_model, y_model=y_model)
+
+# ╔═╡ 5a180282-dac5-45fd-b35c-8ff5c18d61d4
+md"Run the model many times with different datasets and return the mean and standard deviation"
+
+# ╔═╡ 8ff1e94b-60db-4570-ac59-9cb515bc2221
+function get_model_mean_variance(x_model, n_data, n_datasets, n_hidden, σ_func)
+
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1980,5 +1997,9 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╟─9ea343cf-7bc9-4aa3-a273-2ae97370a1c9
 # ╠═45e50829-03e1-4ede-b309-a12aa5c810cc
 # ╟─68dc1e3f-26ce-49df-8054-fdde9efde37e
+# ╠═c8aba02c-9aa2-47d6-b2ff-6acf483cc8e4
+# ╠═9b26dc6b-225f-4a7b-98cc-99d0f128f441
+# ╟─5a180282-dac5-45fd-b35c-8ff5c18d61d4
+# ╠═8ff1e94b-60db-4570-ac59-9cb515bc2221
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
