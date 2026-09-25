@@ -81,6 +81,20 @@ let
 	plot_function(x_func, y_func; x_data=x_data, y_data=y_data, σ_func=σ_func)
 end
 
+# ╔═╡ 58d72baa-7afe-4e7c-865b-95b6df5886a0
+md"Define model -- β is a scalar and Ω has size n_hidden"
+
+# ╔═╡ 5a9e8c50-31e3-497d-9f95-ce0d429f018d
+function network(x, β, Ω)
+	n_hidden = length(Ω)
+
+	# each hidden unit is a ReLU of a shifted line (figure 8.4b-d), weighted by Ω
+	y = sum(Ω[i] .* max.(x .- (i-1) / n_hidden, 0) for i in 1:n_hidden)
+
+	# Add bias 
+	return y .+ β
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1934,5 +1948,7 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╟─c737e82b-7048-405b-9654-a9cbb6bf08df
 # ╠═406caf02-49ba-4d65-9799-6aa651fddcde
 # ╠═4197db13-c0e3-4eb1-ba90-9bf28d9f2e3c
+# ╟─58d72baa-7afe-4e7c-865b-95b6df5886a0
+# ╠═5a9e8c50-31e3-497d-9f95-ce0d429f018d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
