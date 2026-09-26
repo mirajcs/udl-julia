@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ c601deaf-e521-40b3-9057-40dca394c0f4
-using CairoMakie, Random
+using CairoMakie, Random, Statistics
 
 # ╔═╡ c5bac3ba-b80f-11f1-867b-c7078cfd122e
 md"# Notebook 8.2 - Bias-Variance Trade Off
@@ -134,14 +134,97 @@ md"Run the model many times with different datasets and return the mean and stan
 
 # ╔═╡ 8ff1e94b-60db-4570-ac59-9cb515bc2221
 function get_model_mean_variance(x_model, n_data, n_datasets, n_hidden, σ_func)
+	# one row per dataset; generate data, fit the model, run it on x_model
+	y_model_all = stack(1:n_datasets; dims=1) do _
+		x_data, y_data = generate_data(n_data; σ_y=σ_func)
+		β, Ω = fit_model_closed_form(x_data, y_data, n_hidden)
+		network(x_model, β, Ω)
+	end
 
+	# Mena and standarad deviation of the model across datasets
+	mean_model = vec(mean(y_model_all; dims=1))
+	std_model = vec(std(y_model_all; dims=1, corrected=false))
+
+	return mean_model, std_model
 end
+
+# ╔═╡ 26414d57-f9bf-48df-a0fb-bb4cd58d932e
+md"Generate N random datasets, fit the model N times and look at the mean and variance."
+
+# ╔═╡ d43be27a-0d39-4671-9e2e-f4a1092a583e
+begin
+	n_datasets = 100
+	n_data¹ = 15
+	σ_func¹ = 0.3
+	n_hidden¹ = 5
+end
+
+# ╔═╡ 153b6816-3513-4aea-82b6-9a868444815e
+md"Get mean and variance of fitted model"
+
+# ╔═╡ 1795cf03-2174-4a30-a17c-0dc2f8dde340
+begin
+	Random.seed!(1)
+	mean_model, std_model = get_model_mean_variance(x_model, n_data¹, n_datasets, n_hidden¹, σ_func¹)
+end
+
+# ╔═╡ 94b453b4-da1e-43fc-8bf5-0ddf455fbd82
+md"Plot the results"
+
+# ╔═╡ bcc90002-08bb-46df-973d-d5fd3471314b
+plot_function(x_func, y_func; x_model=x_model, y_model=mean_model, σ_model=std_model)
+
+# ╔═╡ 5a52602e-cdd7-4133-bf8f-1b17b628a4cd
+md"## TODO  
+
+Experiment with changing the number of data points and the number of hidden variables in the model.  Get a feeling for what happens in terms of the bias (squared deviation between cyan and black lines) and the variance (gray region) as we manipulate these quantities."
+
+# ╔═╡ 99a3cec3-8a5e-4c15-8f7e-838c83edfff8
+md"Plot the noise, bias and variance as a function of capacity."
+
+# ╔═╡ 8d13ae49-c059-4925-9ed8-32c1b692b418
+let 
+	hidden_variables = 1:12
+	n_datasets = 100
+	n_data = 15
+	σ_func = 0.3
+
+	Random.seed!(1)
+
+	# for each capacity: fit many models, then measure bias and variance 
+	results = map(hidden_variables) do n_hidden 
+		mean_model, std_model = get_model_mean_variance(x_model, n_data, n_datasets, n_hidden, σ_func)
+
+		# Variance: average squared deviation of fitted models around the mean fitted model
+		variance = mean(std_model .^ 2)
+
+		# Bias: average squared deviation of the mean fitted model around the true function
+		bias = mean((mean_model .- true_function.(x_model)) .^2)
+
+		(; bias, variance)
+	end
+	bias = [r.bias for r in results]
+	variance = [r.variance for r in results]
+
+	# plot the results 
+	fig = Figure()
+	ax = Axis(fig[1,1], xlabel="Model capacity", ylabel="Variance")
+	lines!(ax, hidden_variables, variance, color=:black, label="Variance")
+	lines!(ax, hidden_variables, bias, color=:red, label="Bias")
+	lines!(ax, hidden_variables, bias .+ variance, color=:green, label="Bias + Variance")
+	xlims!(ax, 0, last(hidden_variables))
+	ylims!(ax, 0, 0.4)
+	axislegend(ax)
+
+	fig
+end 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 CairoMakie = "~0.15.14"
@@ -153,7 +236,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.13.0"
 manifest_format = "2.1"
-project_hash = "ae2423396986318ea91abb405608bad59a2ba638"
+project_hash = "d7ed0e0524542c8b961b0070c57d29c1c8983110"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -2001,5 +2084,14 @@ uuid = "23338594-aafe-5451-b93e-139f81909106"
 # ╠═9b26dc6b-225f-4a7b-98cc-99d0f128f441
 # ╟─5a180282-dac5-45fd-b35c-8ff5c18d61d4
 # ╠═8ff1e94b-60db-4570-ac59-9cb515bc2221
+# ╟─26414d57-f9bf-48df-a0fb-bb4cd58d932e
+# ╠═d43be27a-0d39-4671-9e2e-f4a1092a583e
+# ╟─153b6816-3513-4aea-82b6-9a868444815e
+# ╠═1795cf03-2174-4a30-a17c-0dc2f8dde340
+# ╟─94b453b4-da1e-43fc-8bf5-0ddf455fbd82
+# ╠═bcc90002-08bb-46df-973d-d5fd3471314b
+# ╟─5a52602e-cdd7-4133-bf8f-1b17b628a4cd
+# ╟─99a3cec3-8a5e-4c15-8f7e-838c83edfff8
+# ╠═8d13ae49-c059-4925-9ed8-32c1b692b418
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
